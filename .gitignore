@@ -1,0 +1,10 @@
+videoComparator.iml
+.idea
+.gradle
+.DS_Store
+/local.properties
+/.idea/workspace.xml
+/.idea/libraries
+app.iml
+/build
+/captures
