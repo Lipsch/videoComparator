@@ -21,8 +21,10 @@ package ch.lipsch.videocomparator;
 
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.support.v7.app.ActionBarActivity;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.PersistableBundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -43,6 +45,11 @@ public class VideoComparatorActivity extends ActionBarActivity {
     /** Request identifier when opening video on the right / bottom side. */
     private static final int PICK_VIDEO2_REQUEST = 2;
 
+    /**
+     * Stores the current state of the videos. In order to restore it in case of app going to background or device orientation
+     */
+    private static final VideoPlayState VIDEO_PLAY_STATE = new VideoPlayState();
+
     private Button loadVideo1Button = null;
     private Button loadVideo2Button = null;
 
@@ -55,6 +62,8 @@ public class VideoComparatorActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        VIDEO_PLAY_STATE.loadState(savedInstanceState);
 
         //Layout differs depending on the rotation of the device.
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -92,6 +101,44 @@ public class VideoComparatorActivity extends ActionBarActivity {
 
         loadVideo1Button.setOnTouchListener(loadVideoTouchListener);
         loadVideo2Button.setOnTouchListener(loadVideoTouchListener);
+
+        restoreState();
+    }
+
+    /**
+     * Restores the video state saved in VIDEO_PLAY_STATE.
+     */
+    private void restoreState() {
+        loadVideo(VIDEO_PLAY_STATE.getVideo1(), video1);
+        loadVideo(VIDEO_PLAY_STATE.getVideo2(), video2);
+    }
+
+    /**
+     * (Un)loads a video in a video view.
+     * As a side effect the currently loaded video is stored in VIDEO_PLAY_STATE
+     *
+     * @param videoToPlay The uri to be played. In case the uri is null the video is unloaded.
+     * @param videoView   The video view in which to load the video.
+     */
+    private void loadVideo(Uri videoToPlay, VideoView videoView) {
+        if (videoToPlay == null) {
+            //Unload video
+            videoView.stopPlayback();
+            videoView.setVideoURI(null);
+        } else {
+            //Load video
+            videoView.setVideoURI(videoToPlay);
+
+            //TODO remove this a soon as we have a play / stop button
+            videoView.setMediaController(new MediaController(this));
+        }
+
+        //Remember current video
+        if (videoView == video1) {
+            VIDEO_PLAY_STATE.setVideo1(videoToPlay);
+        } else {
+            VIDEO_PLAY_STATE.setVideo2(videoToPlay);
+        }
     }
 
     @Override
@@ -104,9 +151,15 @@ public class VideoComparatorActivity extends ActionBarActivity {
                 videoView = video2;
             }
 
-            videoView.setVideoURI(data.getData());
-            videoView.setMediaController(new MediaController(this));
+            loadVideo(data.getData(), videoView);
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
+        super.onSaveInstanceState(outState, outPersistentState);
+
+        VIDEO_PLAY_STATE.saveState(outState);
     }
 
     @Override
