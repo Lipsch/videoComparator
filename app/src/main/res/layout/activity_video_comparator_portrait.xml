@@ -1,16 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
-    <VideoView
-        android:id="@+id/video1"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
-    <VideoView
-        android:id="@+id/video2"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        <VideoView
+            android:id="@+id/video1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
+        <SeekBar
+            android:id="@+id/seekBarVideo1"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/seekBar_height"
+            android:layout_alignParentBottom="true" />
+
+        <Button
+            android:id="@+id/loadVideo1Button"
+            android:layout_width="@dimen/loadButton_size"
+            android:layout_height="@dimen/loadButton_size"
+            android:layout_alignParentRight="true"
+            android:text="@string/open_file" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <VideoView
+            android:id="@+id/video2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <SeekBar
+            android:id="@+id/seekBarVideo2"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/seekBar_height"
+            android:layout_alignParentBottom="true" />
+
+        <Button
+            android:id="@+id/loadVideo2Button"
+            android:layout_width="@dimen/loadButton_size"
+            android:layout_height="@dimen/loadButton_size"
+            android:layout_alignParentRight="true"
+            android:text="@string/open_file" />
+    </RelativeLayout>
 </LinearLayout>
