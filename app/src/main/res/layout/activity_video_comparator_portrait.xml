@@ -24,6 +24,7 @@
             android:id="@+id/loadVideo1Button"
             android:layout_width="@dimen/loadButton_size"
             android:layout_height="@dimen/loadButton_size"
+            android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
             android:text="@string/open_file" />
     </RelativeLayout>
@@ -48,6 +49,7 @@
             android:id="@+id/loadVideo2Button"
             android:layout_width="@dimen/loadButton_size"
             android:layout_height="@dimen/loadButton_size"
+            android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
             android:text="@string/open_file" />
     </RelativeLayout>
