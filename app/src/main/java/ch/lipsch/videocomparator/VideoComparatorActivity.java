@@ -184,6 +184,16 @@ public class VideoComparatorActivity extends AppCompatActivity {
                 return isHandled;
             }
         });
+
+        //Mute the videos
+        MediaPlayer.OnPreparedListener muteListener = new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                mp.setVolume(0.0f, 0.0f);
+            }
+        };
+        video1.setOnPreparedListener(muteListener);
+        video2.setOnPreparedListener(muteListener);
     }
 
     /**
