@@ -1,6 +1,28 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools" tools:context=".VideoComparatorActivity">
-    <item android:id="@+id/action_settings" android:title="@string/action_settings"
-        android:orderInCategory="100" app:showAsAction="never" />
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".VideoComparatorActivity">
+    <item
+        android:id="@+id/action_settings"
+        android:orderInCategory="100"
+        android:title="@string/action_settings"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_play"
+        android:title="@string/action_play"
+        android:icon="@drawable/ic_action_play"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_pause"
+        android:title="@string/action_pause"
+        android:icon="@drawable/ic_action_pause"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_stop"
+        android:title="@string/action_stop"
+        android:icon="@drawable/ic_action_stop"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
 </menu>
