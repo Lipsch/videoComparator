@@ -32,7 +32,6 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
-import android.widget.MediaController;
 import android.widget.SeekBar;
 import android.widget.VideoView;
 
@@ -98,6 +97,7 @@ public class VideoComparatorActivity extends AppCompatActivity {
         video1SeekBar = (SeekBar) findViewById(R.id.seekBarVideo1);
         video2SeekBar = (SeekBar) findViewById(R.id.seekBarVideo2);
 
+        registerSeekBarListeners();
         registerVideoListeners();
 
         loadVideo1Button = (Button) findViewById(R.id.loadVideo1Button);
@@ -128,6 +128,49 @@ public class VideoComparatorActivity extends AppCompatActivity {
         loadVideo2Button.setOnTouchListener(loadVideoTouchListener);
 
         restoreState();
+    }
+
+    private void registerSeekBarListeners() {
+        SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                double multiplier = (double) progress / seekBar.getMax();
+
+                VideoView videoView = getVideoViewForSeekbar(seekBar);
+
+                if (videoView != null) {
+
+                    int duration = videoView.getDuration();
+
+                    int seekTo = (int) (duration * multiplier);
+
+                    videoView.seekTo(seekTo);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                //Nothing to do
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                //Nothing to do
+            }
+        };
+
+        video1SeekBar.setOnSeekBarChangeListener(seekBarChangeListener);
+        video2SeekBar.setOnSeekBarChangeListener(seekBarChangeListener);
+    }
+
+    private VideoView getVideoViewForSeekbar(SeekBar seekBar) {
+        if (seekBar == video1SeekBar) {
+            return video1;
+        } else if (seekBar == video2SeekBar) {
+            return video2;
+        }
+
+        return null;
     }
 
     private void registerVideoListeners() {
@@ -218,6 +261,7 @@ public class VideoComparatorActivity extends AppCompatActivity {
                     VIDEO_PLAY_STATE.setVideo2Seekable(false);
                 }
                 isHandled = true;
+                break;
 
             default:
                 isHandled = false;
@@ -262,9 +306,6 @@ public class VideoComparatorActivity extends AppCompatActivity {
         } else {
             //Load video
             videoView.setVideoURI(videoToPlay);
-
-            //TODO remove this a soon as we have a play / stop button
-            videoView.setMediaController(new MediaController(this));
         }
 
         //Remember current video

@@ -18,7 +18,8 @@
             android:id="@+id/seekBarVideo1"
             android:layout_width="match_parent"
             android:layout_height="@dimen/seekBar_height"
-            android:layout_alignParentBottom="true" />
+            android:layout_alignParentBottom="true"
+            android:max="100" />
 
         <Button
             android:id="@+id/loadVideo1Button"
@@ -43,7 +44,8 @@
             android:id="@+id/seekBarVideo2"
             android:layout_width="match_parent"
             android:layout_height="@dimen/seekBar_height"
-            android:layout_alignParentBottom="true" />
+            android:layout_alignParentBottom="true"
+            android:max="100" />
 
         <Button
             android:id="@+id/loadVideo2Button"
