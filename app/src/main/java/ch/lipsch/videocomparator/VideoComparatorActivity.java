@@ -24,6 +24,7 @@ import android.content.res.Configuration;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -58,6 +59,8 @@ public class VideoComparatorActivity extends AppCompatActivity {
      */
     private static final VideoPlayState VIDEO_PLAY_STATE = new VideoPlayState();
 
+    public static final int SEEK_BAR_UPDATE_DELAY_MS = 1000;
+
     private Button loadVideo1Button = null;
     private Button loadVideo2Button = null;
 
@@ -78,6 +81,11 @@ public class VideoComparatorActivity extends AppCompatActivity {
     private SeekBar video1SeekBar = null;
     private SeekBar video2SeekBar = null;
 
+    /**
+     * A handler which updates the position of the video seek bars. In case this variable is set to null no further updates will be done (e.g. on destroy).
+     */
+    private Handler seekBarUpdater = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -97,7 +105,6 @@ public class VideoComparatorActivity extends AppCompatActivity {
         video1SeekBar = (SeekBar) findViewById(R.id.seekBarVideo1);
         video2SeekBar = (SeekBar) findViewById(R.id.seekBarVideo2);
 
-        registerSeekBarListeners();
         registerVideoListeners();
 
         loadVideo1Button = (Button) findViewById(R.id.loadVideo1Button);
@@ -130,21 +137,41 @@ public class VideoComparatorActivity extends AppCompatActivity {
         restoreState();
     }
 
-    private void registerSeekBarListeners() {
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        initializeSeekBars();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        //This will stop updating the seek bars.
+        seekBarUpdater = null;
+    }
+
+    /**
+     * Starts the seek bar updater and listeners for user input
+     */
+    private void initializeSeekBars() {
         SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                double multiplier = (double) progress / seekBar.getMax();
+                if (fromUser) {
+                    double multiplier = (double) progress / seekBar.getMax();
 
-                VideoView videoView = getVideoViewForSeekbar(seekBar);
+                    VideoView videoView = getVideoViewForSeekbar(seekBar);
 
-                if (videoView != null) {
+                    if (videoView != null) {
 
-                    int duration = videoView.getDuration();
+                        int duration = videoView.getDuration();
 
-                    int seekTo = (int) (duration * multiplier);
+                        int seekTo = (int) (duration * multiplier);
 
-                    videoView.seekTo(seekTo);
+                        videoView.seekTo(seekTo);
+                    }
                 }
             }
 
@@ -161,6 +188,42 @@ public class VideoComparatorActivity extends AppCompatActivity {
 
         video1SeekBar.setOnSeekBarChangeListener(seekBarChangeListener);
         video2SeekBar.setOnSeekBarChangeListener(seekBarChangeListener);
+
+        //This updates the seek bars regularly.
+        seekBarUpdater = new Handler();
+        seekBarUpdater.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                //Update the seekbar again in the future
+                if (seekBarUpdater != null) {
+                    correctVideoSeek(video1SeekBar);
+                    correctVideoSeek(video2SeekBar);
+
+                    seekBarUpdater.postDelayed(this, SEEK_BAR_UPDATE_DELAY_MS);
+                }
+            }
+        }, SEEK_BAR_UPDATE_DELAY_MS);
+    }
+
+    private void correctVideoSeek(SeekBar seekBar) {
+        VideoView videoView = getVideoViewForSeekbar(seekBar);
+        if (videoView == null) {
+            return;
+        }
+
+        //Progress is from 0 to 100
+        int duration = video1.getDuration();
+        if (duration == -1) { //Seems the duration is -1 if no video is loaded. (not API documented!)
+            seekBar.setProgress(0);
+        } else {
+            int currentPos = video1.getCurrentPosition();
+            double multiplier = (double) currentPos / duration;
+
+            //Math.ceil because otherwise we would never reach 100% and the seek bar jumps back when manually set.
+            int seekTo = (int) Math.ceil(seekBar.getMax() * multiplier);
+
+            seekBar.setProgress(seekTo);
+        }
     }
 
     private VideoView getVideoViewForSeekbar(SeekBar seekBar) {
