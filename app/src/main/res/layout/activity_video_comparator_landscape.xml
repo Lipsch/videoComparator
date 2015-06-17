@@ -6,7 +6,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:baselineAligned="false"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:background="@android:color/background_dark">
 
         <VideoView
             android:id="@+id/video1"
@@ -38,23 +39,52 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="@dimen/seekBar_height"
+        android:layout_height="@dimen/seekBarAndTime_height"
         android:layout_alignParentBottom="true"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:baselineAligned="false">
 
-        <SeekBar
-            android:id="@+id/seekBarVideo1"
+        <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="match_parent"
             android:layout_weight="1"
-            android:max="100" />
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-        <SeekBar
-            android:id="@+id/seekBarVideo2"
+            <TextView
+                android:id="@+id/timeVideo1"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/time_height"
+
+                android:gravity="bottom|right"
+                android:layout_marginRight="10dp"
+                android:textColor="@android:color/white" />
+
+            <SeekBar
+                android:id="@+id/seekBarVideo1"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/seekBar_height"
+                android:max="100" />
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="match_parent"
             android:layout_weight="1"
-            android:max="100" />
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/timeVideo2"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/time_height"
+                android:gravity="bottom|right"
+                android:layout_marginRight="10dp"
+                android:textColor="@android:color/white" />
+
+            <SeekBar
+                android:id="@+id/seekBarVideo2"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:max="100" />
+        </LinearLayout>
     </LinearLayout>
-
 </RelativeLayout>

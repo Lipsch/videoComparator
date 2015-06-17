@@ -34,7 +34,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.VideoView;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * The main activity which contains the two video controls.
@@ -80,6 +83,9 @@ public class VideoComparatorActivity extends AppCompatActivity {
 
     private SeekBar video1SeekBar = null;
     private SeekBar video2SeekBar = null;
+    private TextView videoTime1 = null;
+    private TextView videoTime2 = null;
+
 
     /**
      * A handler which updates the position of the video seek bars. In case this variable is set to null no further updates will be done (e.g. on destroy).
@@ -104,6 +110,8 @@ public class VideoComparatorActivity extends AppCompatActivity {
 
         video1SeekBar = (SeekBar) findViewById(R.id.seekBarVideo1);
         video2SeekBar = (SeekBar) findViewById(R.id.seekBarVideo2);
+        videoTime1 = (TextView) findViewById(R.id.timeVideo1);
+        videoTime2 = (TextView) findViewById(R.id.timeVideo2);
 
         registerVideoListeners();
 
@@ -141,7 +149,7 @@ public class VideoComparatorActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        initializeSeekBars();
+        initializeSeekBarsAndTime();
     }
 
     @Override
@@ -153,16 +161,16 @@ public class VideoComparatorActivity extends AppCompatActivity {
     }
 
     /**
-     * Starts the seek bar updater and listeners for user input
+     * Starts the seek bar / time updater and listeners for user input
      */
-    private void initializeSeekBars() {
+    private void initializeSeekBarsAndTime() {
         SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser) {
                     double multiplier = (double) progress / seekBar.getMax();
 
-                    VideoView videoView = getVideoViewForSeekbar(seekBar);
+                    VideoView videoView = getVideoViewFor(seekBar);
 
                     if (videoView != null) {
 
@@ -205,28 +213,52 @@ public class VideoComparatorActivity extends AppCompatActivity {
         }, SEEK_BAR_UPDATE_DELAY_MS);
     }
 
+    /**
+     * Corrects the progress of the given seek bar according to the current played video.
+     * The time field which belongs to the given seek bar is corrected too.
+     *
+     * @param seekBar The seek bar to adjust.
+     */
     private void correctVideoSeek(SeekBar seekBar) {
-        VideoView videoView = getVideoViewForSeekbar(seekBar);
-        if (videoView == null) {
-            return;
-        }
+        VideoView videoView = getVideoViewFor(seekBar);
 
-        //Progress is from 0 to 100
-        int duration = video1.getDuration();
-        if (duration == -1) { //Seems the duration is -1 if no video is loaded. (not API documented!)
-            seekBar.setProgress(0);
-        } else {
-            int currentPos = video1.getCurrentPosition();
-            double multiplier = (double) currentPos / duration;
+        if (videoView != null) {
+            //Progress is from 0 to 100
+            int duration = videoView.getDuration();
+            if (duration == -1) { //Seems the duration is -1 if no video is loaded. (not API documented!)
+                seekBar.setProgress(0);
+            } else {
+                int currentPos = videoView.getCurrentPosition();
+                double multiplier = (double) currentPos / duration;
 
-            //Math.ceil because otherwise we would never reach 100% and the seek bar jumps back when manually set.
-            int seekTo = (int) Math.ceil(seekBar.getMax() * multiplier);
+                //Math.ceil because otherwise we would never reach 100% and the seek bar jumps back when manually set.
+                int seekTo = (int) Math.ceil(seekBar.getMax() * multiplier);
 
-            seekBar.setProgress(seekTo);
+                seekBar.setProgress(seekTo);
+
+                TextView timeField = getTimeFieldFor(seekBar);
+                if (timeField != null) {
+                    //Formatted milliseconds to 0:21:55 -> h:mm:ss
+                    timeField.setText(String.format("%d:%02d:%02d",
+                            TimeUnit.MILLISECONDS.toHours(currentPos),
+                            TimeUnit.MILLISECONDS.toMinutes(currentPos),
+                            TimeUnit.MILLISECONDS.toSeconds(currentPos)));
+                }
+            }
         }
     }
 
-    private VideoView getVideoViewForSeekbar(SeekBar seekBar) {
+    private TextView getTimeFieldFor(SeekBar seekBar) {
+        if (seekBar == video1SeekBar) {
+            return videoTime1;
+        } else if (seekBar == video2SeekBar) {
+            return videoTime2;
+        }
+
+        return null;
+    }
+
+    private VideoView getVideoViewFor(SeekBar seekBar) {
         if (seekBar == video1SeekBar) {
             return video1;
         } else if (seekBar == video2SeekBar) {
