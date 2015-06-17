@@ -2,7 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@android:color/background_dark">
 
     <RelativeLayout
         android:layout_width="wrap_content"
@@ -14,11 +15,27 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-        <SeekBar
-            android:id="@+id/seekBarVideo1"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="@dimen/seekBar_height"
-            android:layout_alignParentBottom="true" />
+            android:layout_height="60dp"
+            android:orientation="vertical"
+            android:layout_alignParentBottom="true">
+
+            <TextView
+                android:id="@+id/timeVideo1"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/time_height"
+                android:gravity="bottom|right"
+                android:layout_marginRight="10dp"
+                android:textColor="@android:color/white" />
+
+            <SeekBar
+                android:id="@+id/seekBarVideo1"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/seekBar_height"
+                android:layout_alignParentBottom="true"
+                android:max="100" />
+        </LinearLayout>
 
         <Button
             android:id="@+id/loadVideo1Button"
@@ -38,11 +55,26 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-        <SeekBar
-            android:id="@+id/seekBarVideo2"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="@dimen/seekBar_height"
-            android:layout_alignParentBottom="true" />
+            android:layout_height="@dimen/seekBarAndTime_height"
+            android:orientation="vertical"
+            android:layout_alignParentBottom="true">
+
+            <TextView
+                android:id="@+id/timeVideo2"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/time_height"
+                android:gravity="bottom|right"
+                android:layout_marginRight="10dp"
+                android:textColor="@android:color/white" />
+
+            <SeekBar
+                android:id="@+id/seekBarVideo2"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/seekBar_height"
+                android:max="100" />
+        </LinearLayout>
 
         <Button
             android:id="@+id/loadVideo2Button"
