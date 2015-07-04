@@ -40,6 +40,7 @@ class VideoPlayState {
     private static final String PAUSE_VIDEO2_KEY = "VideoPlayState.pauseVideo1";
     private static final String STATE_VIDEO1_KEY = "VideoPlayState.stateVideo1";
     private static final String STATE_VIDEO2_KEY = "VideoPlayState.stateVideo2";
+    private static final String VIDEO_MUTED_KEY = "VideoPlayState.videoMuted";
 
     /**
      * A key in the saved state to know that the state has been saved.
@@ -55,6 +56,8 @@ class VideoPlayState {
 
     private boolean video1Seekable = true;
     private boolean video2Seekable = true;
+
+    private boolean videoMuted = true;
 
     /**
      * Time when the video 1 was paused. Duration in seconds.
@@ -120,6 +123,14 @@ class VideoPlayState {
         return video2State.equals(State.PLAYING);
     }
 
+    public void setVideoMuted(boolean muted) {
+        videoMuted = muted;
+    }
+
+    public boolean isVideoMuted() {
+        return videoMuted;
+    }
+
     public Uri getVideo1() {
         return video1;
     }
@@ -151,6 +162,7 @@ class VideoPlayState {
     }
 
     public void saveState(Bundle bundle) {
+        bundle.putBoolean(VIDEO_MUTED_KEY, videoMuted);
         bundle.putBoolean(HAS_VIDEO_STATE_KEY, true);
 
         if (video1 == null) {
@@ -180,6 +192,8 @@ class VideoPlayState {
         if (bundle == null || !bundle.getBoolean(HAS_VIDEO_STATE_KEY)) {
             return;
         }
+
+        videoMuted = bundle.getBoolean(VIDEO_MUTED_KEY);
 
         String video1Uri = bundle.getString(URI_VIDEO1_KEY);
         if (video1Uri == null) {
