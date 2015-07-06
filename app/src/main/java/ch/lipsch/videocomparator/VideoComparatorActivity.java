@@ -80,11 +80,19 @@ public class VideoComparatorActivity extends AppCompatActivity {
     private MenuItem actionPlay = null;
     private MenuItem actionPause = null;
     private MenuItem actionStop = null;
+    private MenuItem actionMute = null;
+    private MenuItem actionUnmute = null;
 
     private SeekBar video1SeekBar = null;
     private SeekBar video2SeekBar = null;
     private TextView videoTime1 = null;
     private TextView videoTime2 = null;
+
+    //The media players of the two video views. They are needed to mute / unmute the videos.
+    // This reference is needed because it is not possible at any moment to get the media player of
+    // a video view (see OnPreparedListener).
+    private MediaPlayer video1Player = null;
+    private MediaPlayer video2Player = null;
 
 
     /**
@@ -323,15 +331,29 @@ public class VideoComparatorActivity extends AppCompatActivity {
             }
         });
 
-        //Mute the videos
-        MediaPlayer.OnPreparedListener muteListener = new MediaPlayer.OnPreparedListener() {
+
+        //Mute / unmute the videos before playing.
+        //Haven't found a possibility to get the media play to mute / unmute the video.
+        //Therefore saving it within the listener
+
+        MediaPlayer.OnPreparedListener muteListenerVideo1 = new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
-                mp.setVolume(0.0f, 0.0f);
+                video1Player = mp;
+
+                muteVideos(VIDEO_PLAY_STATE.isVideoMuted());
             }
         };
-        video1.setOnPreparedListener(muteListener);
-        video2.setOnPreparedListener(muteListener);
+        MediaPlayer.OnPreparedListener muteListenerVideo2 = new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                video2Player = mp;
+
+                muteVideos(VIDEO_PLAY_STATE.isVideoMuted());
+            }
+        };
+        video1.setOnPreparedListener(muteListenerVideo1);
+        video2.setOnPreparedListener(muteListenerVideo2);
     }
 
     /**
@@ -383,6 +405,8 @@ public class VideoComparatorActivity extends AppCompatActivity {
         loadVideo(VIDEO_PLAY_STATE.getVideo1(), video1);
         loadVideo(VIDEO_PLAY_STATE.getVideo2(), video2);
 
+        muteVideos(VIDEO_PLAY_STATE.isVideoMuted());
+
         updateGuiState();
     }
 
@@ -394,6 +418,21 @@ public class VideoComparatorActivity extends AppCompatActivity {
      * @param videoView   The video view in which to load the video.
      */
     private void loadVideo(Uri videoToPlay, VideoView videoView) {
+        //Remember current video
+        if (videoView == video1) {
+            VIDEO_PLAY_STATE.setVideo1(videoToPlay);
+            //initially a video is seekable. The media player will push an info in case this is not true.
+            VIDEO_PLAY_STATE.setVideo1Seekable(videoToPlay != null);
+            video1Player = null;
+        } else {
+            VIDEO_PLAY_STATE.setVideo2(videoToPlay);
+
+            //initially a video is seekable. The media player will push an info in case this is not true.
+            VIDEO_PLAY_STATE.setVideo2Seekable(videoToPlay != null);
+            video2Player = null;
+        }
+
+
         if (videoToPlay == null) {
             //Unload video
             videoView.stopPlayback();
@@ -401,18 +440,6 @@ public class VideoComparatorActivity extends AppCompatActivity {
         } else {
             //Load video
             videoView.setVideoURI(videoToPlay);
-        }
-
-        //Remember current video
-        if (videoView == video1) {
-            VIDEO_PLAY_STATE.setVideo1(videoToPlay);
-            //initially a video is seekable. The media player will push an info in case this is not true.
-            VIDEO_PLAY_STATE.setVideo1Seekable(videoToPlay != null);
-        } else {
-            VIDEO_PLAY_STATE.setVideo2(videoToPlay);
-
-            //initially a video is seekable. The media player will push an info in case this is not true.
-            VIDEO_PLAY_STATE.setVideo2Seekable(videoToPlay != null);
         }
 
         updateGuiState();
@@ -448,6 +475,8 @@ public class VideoComparatorActivity extends AppCompatActivity {
         actionPlay = menu.findItem(R.id.action_play);
         actionPause = menu.findItem(R.id.action_pause);
         actionStop = menu.findItem(R.id.action_stop);
+        actionMute = menu.findItem(R.id.action_mute);
+        actionUnmute = menu.findItem(R.id.action_unmute);
 
         updateGuiState();
 
@@ -471,9 +500,33 @@ public class VideoComparatorActivity extends AppCompatActivity {
         } else if (id == R.id.action_stop) {
             stopVideos();
             return true;
+        } else if (id == R.id.action_mute) {
+            muteVideos(true);
+            return true;
+        } else if (id == R.id.action_unmute) {
+            muteVideos(false);
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void muteVideos(boolean muted) {
+        float volume = 0.0f;
+        if (!muted) {
+            volume = 1.0f;
+        }
+
+        if (video1Player != null) {
+            video1Player.setVolume(volume, volume);
+        }
+        if (video2Player != null) {
+            video2Player.setVolume(volume, volume);
+        }
+
+        VIDEO_PLAY_STATE.setVideoMuted(muted);
+
+        updateGuiState();
     }
 
     private void playVideos() {
@@ -511,6 +564,13 @@ public class VideoComparatorActivity extends AppCompatActivity {
      * Updates the state of widgets. E.g. enables / disables the play button according to current video plays.
      */
     private void updateGuiState() {
+        if (actionMute != null) {
+            actionMute.setVisible(!VIDEO_PLAY_STATE.isVideoMuted());
+        }
+        if (actionUnmute != null) {
+            actionUnmute.setVisible(VIDEO_PLAY_STATE.isVideoMuted());
+        }
+
         //Action button visibility
         if (actionPlay != null) {
             actionPlay.setVisible(VIDEO_PLAY_STATE.shouldShowPlayButton());

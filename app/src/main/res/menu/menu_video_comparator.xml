@@ -8,6 +8,18 @@
         android:title="@string/action_settings"
         app:showAsAction="never" />
     <item
+        android:id="@+id/action_mute"
+        android:title="@string/action_mute"
+        android:icon="@drawable/ic_audio_vol_mute_am"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_unmute"
+        android:title="@string/action_unmute"
+        android:icon="@drawable/ic_audio_vol_am"
+        android:visible="true"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/action_play"
         android:title="@string/action_play"
         android:icon="@drawable/ic_action_play"
