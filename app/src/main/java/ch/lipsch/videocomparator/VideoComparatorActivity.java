@@ -42,7 +42,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * The main activity which contains the two video controls.
  */
-//TODO: Remove the action bar completely?
 public class VideoComparatorActivity extends AppCompatActivity {
 
     private static final String TAG = VideoComparatorActivity.class.getName();
@@ -63,6 +62,7 @@ public class VideoComparatorActivity extends AppCompatActivity {
     private static final VideoPlayState VIDEO_PLAY_STATE = new VideoPlayState();
 
     public static final int SEEK_BAR_UPDATE_DELAY_MS = 1000;
+    private static final long INVISIBILITY_TOGGLER_DELAY_MS = 2000;
 
     private Button loadVideo1Button = null;
     private Button loadVideo2Button = null;
@@ -100,6 +100,23 @@ public class VideoComparatorActivity extends AppCompatActivity {
      */
     private Handler seekBarUpdater = null;
 
+    /**
+     * A handler which makes some ui controls invisible.
+     */
+    private final Handler invisibilityTogglerHandler = new Handler();
+    private final Runnable invisibilityToggler = new Runnable() {
+        @Override
+        public void run() {
+            //When adding a UI control don't forget to add it in makeUiVisible.
+            loadVideo1Button.setVisibility(View.INVISIBLE);
+            loadVideo2Button.setVisibility(View.INVISIBLE);
+            video1SeekBar.setVisibility(View.INVISIBLE);
+            video2SeekBar.setVisibility(View.INVISIBLE);
+            videoTime1.setVisibility(View.INVISIBLE);
+            videoTime2.setVisibility(View.INVISIBLE);
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -113,9 +130,20 @@ public class VideoComparatorActivity extends AppCompatActivity {
             setContentView(R.layout.activity_video_comparator_portrait);
         }
 
+        //Make the ui visible on any touch and if playing make it invisible again.
+        findViewById(android.R.id.content).setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                makeUiVisible();
+                if (VIDEO_PLAY_STATE.isVideo1Playing() || VIDEO_PLAY_STATE.isVideo2Playing()) {
+                    triggerUiInvisible();
+                }
+                return false;
+            }
+        });
+
         video1 = (VideoView) findViewById(R.id.video1);
         video2 = (VideoView) findViewById(R.id.video2);
-
         video1SeekBar = (SeekBar) findViewById(R.id.seekBarVideo1);
         video2SeekBar = (SeekBar) findViewById(R.id.seekBarVideo2);
         videoTime1 = (TextView) findViewById(R.id.timeVideo1);
@@ -151,6 +179,8 @@ public class VideoComparatorActivity extends AppCompatActivity {
         loadVideo2Button.setOnTouchListener(loadVideoTouchListener);
 
         restoreState();
+
+        makeUiVisible();
     }
 
     @Override
@@ -221,6 +251,36 @@ public class VideoComparatorActivity extends AppCompatActivity {
         }, SEEK_BAR_UPDATE_DELAY_MS);
     }
 
+    private void makeUiVisible() {
+        //Removes any triggerUiInvisible calls.
+        invisibilityTogglerHandler.removeCallbacks(invisibilityToggler);
+
+        //When adding new ui controls don't forget to add them in the invisibilityToggler.
+        loadVideo1Button.setVisibility(View.VISIBLE);
+        loadVideo2Button.setVisibility(View.VISIBLE);
+
+        if (canSeekBarBecomeVisible(video1SeekBar)) {
+            video1SeekBar.setVisibility(View.VISIBLE);
+            videoTime1.setVisibility(View.VISIBLE);
+        }
+        if (canSeekBarBecomeVisible(video2SeekBar)) {
+            video2SeekBar.setVisibility(View.VISIBLE);
+            videoTime2.setVisibility(View.VISIBLE);
+        }
+    }
+
+    /**
+     * Makes the UI (menu, load buttons, ...) invisible in a short amount of time.
+     * This action can be cancelled by calling makeUiVisible.
+     * A possible previous call of this method is cancelled.
+     */
+    private void triggerUiInvisible() {
+        //Removes previous calls
+        invisibilityTogglerHandler.removeCallbacks(invisibilityToggler);
+
+        invisibilityTogglerHandler.postDelayed(invisibilityToggler, INVISIBILITY_TOGGLER_DELAY_MS);
+    }
+
     /**
      * Corrects the progress of the given seek bar according to the current played video.
      * The time field which belongs to the given seek bar is corrected too.
@@ -282,6 +342,7 @@ public class VideoComparatorActivity extends AppCompatActivity {
             public void onCompletion(MediaPlayer mp) {
                 //Video 1 finished
                 VIDEO_PLAY_STATE.setVideo2State(VideoPlayState.State.LOADED);
+                makeUiVisible();
             }
         });
         video2.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
@@ -289,6 +350,7 @@ public class VideoComparatorActivity extends AppCompatActivity {
             public void onCompletion(MediaPlayer mp) {
                 //Video2 finished
                 VIDEO_PLAY_STATE.setVideo2State(VideoPlayState.State.LOADED);
+                makeUiVisible();
             }
         });
 
@@ -296,6 +358,7 @@ public class VideoComparatorActivity extends AppCompatActivity {
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
                 VIDEO_PLAY_STATE.setVideo1State(VideoPlayState.State.ERROR);
+                makeUiVisible();
 
                 //false -> let the video view inform the user about errors
                 return false;
@@ -305,6 +368,7 @@ public class VideoComparatorActivity extends AppCompatActivity {
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
                 VIDEO_PLAY_STATE.setVideo2State(VideoPlayState.State.ERROR);
+                makeUiVisible();
 
                 //false -> let the video view inform the user about errors
                 return false;
@@ -493,12 +557,15 @@ public class VideoComparatorActivity extends AppCompatActivity {
             return true;
         } else if (id == R.id.action_play) {
             playVideos();
+            triggerUiInvisible();
             return true;
         } else if (id == R.id.action_pause) {
             pauseVideos();
+            makeUiVisible();
             return true;
         } else if (id == R.id.action_stop) {
             stopVideos();
+            makeUiVisible();
             return true;
         } else if (id == R.id.action_mute) {
             muteVideos(true);
@@ -584,17 +651,29 @@ public class VideoComparatorActivity extends AppCompatActivity {
             actionStop.setVisible(VIDEO_PLAY_STATE.shouldShowStopButton());
         }
 
-        //Seekbar visibility
-        if (VIDEO_PLAY_STATE.getVideo1() != null && VIDEO_PLAY_STATE.isVideo1Seekable()) {
-            video1SeekBar.setVisibility(View.VISIBLE);
-        } else {
+        //Seekbar visibility: Do not show a seek bar where no video is loaded.
+        if (!canSeekBarBecomeVisible(video1SeekBar)) {
             video1SeekBar.setVisibility(View.INVISIBLE);
         }
-
-        if (VIDEO_PLAY_STATE.getVideo2() != null && VIDEO_PLAY_STATE.isVideo2Seekable()) {
-            video2SeekBar.setVisibility(View.VISIBLE);
-        } else {
+        if (!canSeekBarBecomeVisible(video2SeekBar)) {
             video2SeekBar.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    /**
+     * Determines if the given seek bar's visibility can be visible.
+     * E.g. a seek bar should never be visible if no video is loaded.
+     *
+     * @param seekBar The seek bar to check.
+     * @return true if the provided seek bar can be made visible else false. true if the seek bar is unknown.
+     */
+    private boolean canSeekBarBecomeVisible(SeekBar seekBar) {
+        if (seekBar == video1SeekBar) {
+            return VIDEO_PLAY_STATE.getVideo1() != null && VIDEO_PLAY_STATE.isVideo1Seekable();
+        } else if (seekBar == video2SeekBar) {
+            return VIDEO_PLAY_STATE.getVideo2() != null && VIDEO_PLAY_STATE.isVideo2Seekable();
+        } else {
+            return true;
         }
     }
 }
