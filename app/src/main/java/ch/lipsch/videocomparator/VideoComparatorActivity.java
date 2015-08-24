@@ -39,6 +39,9 @@ import android.widget.VideoView;
 
 import java.util.concurrent.TimeUnit;
 
+import ch.lipsch.videocomparator.drawing.DrawingManager;
+import ch.lipsch.videocomparator.drawing.DrawingView;
+
 /**
  * The main activity which contains the two video controls.
  */
@@ -71,12 +74,18 @@ public class VideoComparatorActivity extends AppCompatActivity {
      * The video control on the left / top side (depending on the device orientation.
      */
     private VideoView video1 = null;
+    private DrawingView drawingView1 = null;
 
     /**
      * The video control on the right / bottom side (depending on the device orientation.
      */
     private VideoView video2 = null;
+    private DrawingView drawingView2 = null;
 
+    private DrawingManager drawingManager = null;
+
+    private MenuItem actionMirrorDrawings = null;
+    private MenuItem actionDoNotMirrorDrawings = null;
     private MenuItem actionPlay = null;
     private MenuItem actionPause = null;
     private MenuItem actionStop = null;
@@ -143,7 +152,10 @@ public class VideoComparatorActivity extends AppCompatActivity {
         });
 
         video1 = (VideoView) findViewById(R.id.video1);
+        drawingView1 = (DrawingView) findViewById(R.id.drawingView1);
         video2 = (VideoView) findViewById(R.id.video2);
+        drawingView2 = (DrawingView) findViewById(R.id.drawingView2);
+
         video1SeekBar = (SeekBar) findViewById(R.id.seekBarVideo1);
         video2SeekBar = (SeekBar) findViewById(R.id.seekBarVideo2);
         videoTime1 = (TextView) findViewById(R.id.timeVideo1);
@@ -188,6 +200,7 @@ public class VideoComparatorActivity extends AppCompatActivity {
         super.onStart();
 
         initializeSeekBarsAndTime();
+        initializeDrawingViews();
     }
 
     @Override
@@ -196,6 +209,17 @@ public class VideoComparatorActivity extends AppCompatActivity {
 
         //This will stop updating the seek bars.
         seekBarUpdater = null;
+
+        try {
+            drawingManager.close();
+        } catch (Exception e) {
+            Log.e(TAG, "Could not close drawing manager", e);
+        }
+        drawingManager = null;
+    }
+
+    private void initializeDrawingViews() {
+        drawingManager = new DrawingManager(drawingView1, drawingView2);
     }
 
     /**
@@ -541,6 +565,8 @@ public class VideoComparatorActivity extends AppCompatActivity {
         actionStop = menu.findItem(R.id.action_stop);
         actionMute = menu.findItem(R.id.action_mute);
         actionUnmute = menu.findItem(R.id.action_unmute);
+        actionMirrorDrawings = menu.findItem(R.id.action_mirrorDraws);
+        actionDoNotMirrorDrawings = menu.findItem(R.id.action_doNotMirrorDraws);
 
         updateGuiState();
 
@@ -572,6 +598,21 @@ public class VideoComparatorActivity extends AppCompatActivity {
             return true;
         } else if (id == R.id.action_unmute) {
             muteVideos(false);
+            return true;
+        } else if (id == R.id.action_clearDraws) {
+            if (drawingManager != null) {
+                drawingManager.clearDraws();
+                return true;
+            }
+        } else if (id == R.id.action_pickColor) {
+            //TODO pick Color dialog
+            return true;
+        } else if (id == R.id.action_mirrorDraws || id == R.id.action_doNotMirrorDraws) {
+            //toggle mirror drawings state
+            if (drawingManager != null) {
+                drawingManager.setIsMirroring(!drawingManager.isMirroring());
+                updateGuiState();
+            }
             return true;
         }
 
@@ -657,6 +698,16 @@ public class VideoComparatorActivity extends AppCompatActivity {
         }
         if (!canSeekBarBecomeVisible(video2SeekBar)) {
             video2SeekBar.setVisibility(View.INVISIBLE);
+        }
+
+        if (actionMirrorDrawings != null && actionDoNotMirrorDrawings != null) {
+            if (drawingManager != null && !drawingManager.isMirroring()) {
+                actionMirrorDrawings.setVisible(!VIDEO_PLAY_STATE.shouldShowMirrorDrawings());
+                actionDoNotMirrorDrawings.setVisible(VIDEO_PLAY_STATE.shouldShowMirrorDrawings());
+            } else {
+                actionMirrorDrawings.setVisible(VIDEO_PLAY_STATE.shouldShowMirrorDrawings());
+                actionDoNotMirrorDrawings.setVisible(!VIDEO_PLAY_STATE.shouldShowMirrorDrawings());
+            }
         }
     }
 

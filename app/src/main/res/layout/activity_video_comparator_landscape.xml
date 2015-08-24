@@ -9,17 +9,37 @@
         android:orientation="horizontal"
         android:background="@android:color/background_dark">
 
-        <VideoView
-            android:id="@+id/video1"
+        <FrameLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:layout_weight="1">
 
-        <VideoView
-            android:id="@+id/video2"
+            <VideoView
+                android:id="@+id/video1"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <ch.lipsch.videocomparator.drawing.DrawingView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/drawingView1" />
+        </FrameLayout>
+
+        <FrameLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:layout_weight="1">
+
+            <VideoView
+                android:id="@+id/video2"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <ch.lipsch.videocomparator.drawing.DrawingView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/drawingView2" />
+        </FrameLayout>
     </LinearLayout>
 
     <Button

@@ -1,4 +1,8 @@
 <resources>
+    <string name="action_clearDraws">Clear drawings</string>
+    <string name="action_pickColor">Drawing color</string>
+    <string name="action_mirrorDraws">Mirror drawings</string>
+    <string name="action_doNotMirrorDraws">Mirror drawings</string>
     <string name="action_mute">Mute</string>
     <string name="action_unmute">Unmute</string>
     <string name="action_settings">Settings</string>

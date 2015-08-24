@@ -8,6 +8,30 @@
         android:title="@string/action_settings"
         app:showAsAction="never" />
     <item
+        android:id="@+id/action_clearDraws"
+        android:title="@string/action_clearDraws"
+        android:icon="@drawable/ic_audio_vol_mute_am"
+        android:visible="true"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_pickColor"
+        android:title="@string/action_pickColor"
+        android:icon="@drawable/ic_audio_vol_mute_am"
+        android:visible="true"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_mirrorDraws"
+        android:title="@string/action_mirrorDraws"
+        android:icon="@drawable/ic_audio_vol_mute_am"
+        android:visible="true"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_doNotMirrorDraws"
+        android:title="@string/action_doNotMirrorDraws"
+        android:icon="@drawable/ic_audio_vol_mute_am"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/action_mute"
         android:title="@string/action_mute"
         android:icon="@drawable/ic_audio_vol_mute_am"

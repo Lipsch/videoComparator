@@ -41,6 +41,7 @@ class VideoPlayState {
     private static final String STATE_VIDEO1_KEY = "VideoPlayState.stateVideo1";
     private static final String STATE_VIDEO2_KEY = "VideoPlayState.stateVideo2";
     private static final String VIDEO_MUTED_KEY = "VideoPlayState.videoMuted";
+    private static final String MIRROR_DRAWINGS_KEY = "VideoPlayState.mirrorDrawings";
 
     /**
      * A key in the saved state to know that the state has been saved.
@@ -68,6 +69,8 @@ class VideoPlayState {
      * Time when the video 1 was paused. Duration in seconds.
      */
     private Double video2PausedAtInSec = null;
+
+    private boolean mirrorDrawings = true;
 
     /**
      * The video 1 is paused at the given time in seconds.
@@ -164,6 +167,7 @@ class VideoPlayState {
     public void saveState(Bundle bundle) {
         bundle.putBoolean(VIDEO_MUTED_KEY, videoMuted);
         bundle.putBoolean(HAS_VIDEO_STATE_KEY, true);
+        bundle.putBoolean(MIRROR_DRAWINGS_KEY, shouldShowMirrorDrawings());
 
         if (video1 == null) {
             bundle.putString(URI_VIDEO1_KEY, null);
@@ -194,6 +198,7 @@ class VideoPlayState {
         }
 
         videoMuted = bundle.getBoolean(VIDEO_MUTED_KEY);
+        mirrorDrawings = bundle.getBoolean(MIRROR_DRAWINGS_KEY);
 
         String video1Uri = bundle.getString(URI_VIDEO1_KEY);
         if (video1Uri == null) {
@@ -263,5 +268,13 @@ class VideoPlayState {
 
     public boolean isVideo2Seekable() {
         return video2Seekable;
+    }
+
+    public void setShouldShowMirrorDrawings(boolean mirrorDrawings) {
+        this.mirrorDrawings = mirrorDrawings;
+    }
+
+    public boolean shouldShowMirrorDrawings() {
+        return this.mirrorDrawings;
     }
 }
