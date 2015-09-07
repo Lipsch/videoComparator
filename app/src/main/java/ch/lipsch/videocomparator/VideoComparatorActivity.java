@@ -25,7 +25,6 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -45,7 +44,7 @@ import ch.lipsch.videocomparator.drawing.DrawingView;
 /**
  * The main activity which contains the two video controls.
  */
-public class VideoComparatorActivity extends AppCompatActivity {
+public class VideoComparatorActivity extends AppCompatActivity implements VideoComparatorView {
 
     private static final String TAG = VideoComparatorActivity.class.getName();
 
@@ -59,13 +58,7 @@ public class VideoComparatorActivity extends AppCompatActivity {
      */
     private static final int PICK_VIDEO2_REQUEST = 2;
 
-    /**
-     * Stores the current state of the videos. In order to restore it in case of app going to background or device orientation
-     */
-    private static final VideoPlayState VIDEO_PLAY_STATE = new VideoPlayState();
-
     public static final int SEEK_BAR_UPDATE_DELAY_MS = 1000;
-    private static final long INVISIBILITY_TOGGLER_DELAY_MS = 2000;
 
     private Button loadVideo1Button = null;
     private Button loadVideo2Button = null;
@@ -103,6 +96,10 @@ public class VideoComparatorActivity extends AppCompatActivity {
     private MediaPlayer video1Player = null;
     private MediaPlayer video2Player = null;
 
+    //We need to remember the last played video due to the issue that when a playing video is stopped the video is unloaded.
+    //So after stopping a video the original URI must be reloaded again. See loadVideo(...) and stopVideos() method.
+    private Uri lastPlayedOnVideo1 = null;
+    private Uri lastPlayedOnVideo2 = null;
 
     /**
      * A handler which updates the position of the video seek bars. In case this variable is set to null no further updates will be done (e.g. on destroy).
@@ -110,27 +107,13 @@ public class VideoComparatorActivity extends AppCompatActivity {
     private Handler seekBarUpdater = null;
 
     /**
-     * A handler which makes some ui controls invisible.
+     * The presenter which does all the logic. Gui events are propagated to the presenter who processes it.
      */
-    private final Handler invisibilityTogglerHandler = new Handler();
-    private final Runnable invisibilityToggler = new Runnable() {
-        @Override
-        public void run() {
-            //When adding a UI control don't forget to add it in makeUiVisible.
-            loadVideo1Button.setVisibility(View.INVISIBLE);
-            loadVideo2Button.setVisibility(View.INVISIBLE);
-            video1SeekBar.setVisibility(View.INVISIBLE);
-            video2SeekBar.setVisibility(View.INVISIBLE);
-            videoTime1.setVisibility(View.INVISIBLE);
-            videoTime2.setVisibility(View.INVISIBLE);
-        }
-    };
+    private VideoComparatorPresenter presenter = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        VIDEO_PLAY_STATE.loadState(savedInstanceState);
 
         //Layout differs depending on the rotation of the device.
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -138,18 +121,6 @@ public class VideoComparatorActivity extends AppCompatActivity {
         } else {
             setContentView(R.layout.activity_video_comparator_portrait);
         }
-
-        //Make the ui visible on any touch and if playing make it invisible again.
-        findViewById(android.R.id.content).setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                makeUiVisible();
-                if (VIDEO_PLAY_STATE.isVideo1Playing() || VIDEO_PLAY_STATE.isVideo2Playing()) {
-                    triggerUiInvisible();
-                }
-                return false;
-            }
-        });
 
         video1 = (VideoView) findViewById(R.id.video1);
         drawingView1 = (DrawingView) findViewById(R.id.drawingView1);
@@ -161,38 +132,24 @@ public class VideoComparatorActivity extends AppCompatActivity {
         videoTime1 = (TextView) findViewById(R.id.timeVideo1);
         videoTime2 = (TextView) findViewById(R.id.timeVideo2);
 
-        registerVideoListeners();
-
         loadVideo1Button = (Button) findViewById(R.id.loadVideo1Button);
         loadVideo2Button = (Button) findViewById(R.id.loadVideo2Button);
 
-        View.OnTouchListener loadVideoTouchListener = new View.OnTouchListener() {
+        presenter = new VideoComparatorPresenterImpl(this);
+
+        //Make the ui visible on any touch and if playing make it invisible again.
+        // The presenter will do the needed logic.
+        findViewById(android.R.id.content).setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public boolean onTouch(View view, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    Intent intent = new Intent();
-                    intent.setType("video/*");
-                    intent.setAction(Intent.ACTION_GET_CONTENT);
+            public boolean onTouch(View v, MotionEvent event) {
+                presenter.onTouch();
 
-                    int requestNumber = PICK_VIDEO1_REQUEST;
-                    if (view == loadVideo2Button) {
-                        requestNumber = PICK_VIDEO2_REQUEST;
-                    }
-
-                    startActivityForResult(Intent.createChooser(intent, getString(R.string.select_video)), requestNumber);
-                    return true;
-                } else {
-                    return false;
-                }
+                return false;
             }
-        };
+        });
 
-        loadVideo1Button.setOnTouchListener(loadVideoTouchListener);
-        loadVideo2Button.setOnTouchListener(loadVideoTouchListener);
-
-        restoreState();
-
-        makeUiVisible();
+        registerVideoListeners();
+        registerOpenVideoFileListener();
     }
 
     @Override
@@ -275,36 +232,6 @@ public class VideoComparatorActivity extends AppCompatActivity {
         }, SEEK_BAR_UPDATE_DELAY_MS);
     }
 
-    private void makeUiVisible() {
-        //Removes any triggerUiInvisible calls.
-        invisibilityTogglerHandler.removeCallbacks(invisibilityToggler);
-
-        //When adding new ui controls don't forget to add them in the invisibilityToggler.
-        loadVideo1Button.setVisibility(View.VISIBLE);
-        loadVideo2Button.setVisibility(View.VISIBLE);
-
-        if (canSeekBarBecomeVisible(video1SeekBar)) {
-            video1SeekBar.setVisibility(View.VISIBLE);
-            videoTime1.setVisibility(View.VISIBLE);
-        }
-        if (canSeekBarBecomeVisible(video2SeekBar)) {
-            video2SeekBar.setVisibility(View.VISIBLE);
-            videoTime2.setVisibility(View.VISIBLE);
-        }
-    }
-
-    /**
-     * Makes the UI (menu, load buttons, ...) invisible in a short amount of time.
-     * This action can be cancelled by calling makeUiVisible.
-     * A possible previous call of this method is cancelled.
-     */
-    private void triggerUiInvisible() {
-        //Removes previous calls
-        invisibilityTogglerHandler.removeCallbacks(invisibilityToggler);
-
-        invisibilityTogglerHandler.postDelayed(invisibilityToggler, INVISIBILITY_TOGGLER_DELAY_MS);
-    }
-
     /**
      * Corrects the progress of the given seek bar according to the current played video.
      * The time field which belongs to the given seek bar is corrected too.
@@ -365,24 +292,21 @@ public class VideoComparatorActivity extends AppCompatActivity {
             @Override
             public void onCompletion(MediaPlayer mp) {
                 //Video 1 finished
-                VIDEO_PLAY_STATE.setVideo2State(VideoPlayState.State.LOADED);
-                makeUiVisible();
+                presenter.onVideoLoadSuccess(CommonDefinitions.VIDEOVIEW1);
             }
         });
         video2.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
                 //Video2 finished
-                VIDEO_PLAY_STATE.setVideo2State(VideoPlayState.State.LOADED);
-                makeUiVisible();
+                presenter.onVideoLoadSuccess(CommonDefinitions.VIDEOVIEW2);
             }
         });
 
         video1.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
-                VIDEO_PLAY_STATE.setVideo1State(VideoPlayState.State.ERROR);
-                makeUiVisible();
+                presenter.onVideoLoadError(CommonDefinitions.VIDEOVIEW1);
 
                 //false -> let the video view inform the user about errors
                 return false;
@@ -391,8 +315,7 @@ public class VideoComparatorActivity extends AppCompatActivity {
         video2.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
-                VIDEO_PLAY_STATE.setVideo2State(VideoPlayState.State.ERROR);
-                makeUiVisible();
+                presenter.onVideoLoadError(CommonDefinitions.VIDEOVIEW2);
 
                 //false -> let the video view inform the user about errors
                 return false;
@@ -403,7 +326,6 @@ public class VideoComparatorActivity extends AppCompatActivity {
             @Override
             public boolean onInfo(MediaPlayer mp, int what, int extra) {
                 boolean isHandled = handleVideoInfo(video1, what);
-                updateGuiState();
 
                 return isHandled;
             }
@@ -413,7 +335,6 @@ public class VideoComparatorActivity extends AppCompatActivity {
             @Override
             public boolean onInfo(MediaPlayer mp, int what, int extra) {
                 boolean isHandled = handleVideoInfo(video2, what);
-                updateGuiState();
 
                 return isHandled;
             }
@@ -428,20 +349,47 @@ public class VideoComparatorActivity extends AppCompatActivity {
             @Override
             public void onPrepared(MediaPlayer mp) {
                 video1Player = mp;
-
-                muteVideos(VIDEO_PLAY_STATE.isVideoMuted());
+                presenter.onShouldUpdateMuteState();
             }
         };
         MediaPlayer.OnPreparedListener muteListenerVideo2 = new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
                 video2Player = mp;
-
-                muteVideos(VIDEO_PLAY_STATE.isVideoMuted());
+                presenter.onShouldUpdateMuteState();
             }
         };
         video1.setOnPreparedListener(muteListenerVideo1);
         video2.setOnPreparedListener(muteListenerVideo2);
+    }
+
+    /**
+     * Registers a touch listener on the two load video buttons which opens an activity to choose a video file.
+     */
+    private void registerOpenVideoFileListener() {
+        View.OnTouchListener loadVideoTouchListener = new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    Intent intent = new Intent();
+                    intent.setType("video/*");
+                    intent.setAction(Intent.ACTION_GET_CONTENT);
+
+                    int requestNumber = PICK_VIDEO1_REQUEST;
+                    if (view == loadVideo2Button) {
+                        requestNumber = PICK_VIDEO2_REQUEST;
+                    }
+
+                    startActivityForResult(Intent.createChooser(intent, getString(R.string.select_video)), requestNumber);
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        };
+
+        loadVideo1Button.setOnTouchListener(loadVideoTouchListener);
+        loadVideo2Button.setOnTouchListener(loadVideoTouchListener);
     }
 
     /**
@@ -461,9 +409,9 @@ public class VideoComparatorActivity extends AppCompatActivity {
 
                 //Seek should be disabled
                 if (videoView == video1) {
-                    VIDEO_PLAY_STATE.setVideo1Seekable(false);
+                    presenter.onVideoNotSeekable(CommonDefinitions.VIDEOVIEW1);
                 } else if (videoView == video2) {
-                    VIDEO_PLAY_STATE.setVideo2Seekable(false);
+                    presenter.onVideoNotSeekable(CommonDefinitions.VIDEOVIEW2);
                 }
                 isHandled = true;
                 break;
@@ -486,40 +434,20 @@ public class VideoComparatorActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Restores the video state saved in VIDEO_PLAY_STATE.
-     */
-    private void restoreState() {
-        loadVideo(VIDEO_PLAY_STATE.getVideo1(), video1);
-        loadVideo(VIDEO_PLAY_STATE.getVideo2(), video2);
+    @Override
+    public void loadVideo(Uri videoToPlay, @CommonDefinitions.VideoViewIdentifier int videoViewIdentifier) {
+        VideoView videoView = null;
 
-        muteVideos(VIDEO_PLAY_STATE.isVideoMuted());
-
-        updateGuiState();
-    }
-
-    /**
-     * (Un)loads a video in a video view.
-     * As a side effect the currently loaded video is stored in VIDEO_PLAY_STATE
-     *
-     * @param videoToPlay The uri to be played. In case the uri is null the video is unloaded.
-     * @param videoView   The video view in which to load the video.
-     */
-    private void loadVideo(Uri videoToPlay, VideoView videoView) {
         //Remember current video
-        if (videoView == video1) {
-            VIDEO_PLAY_STATE.setVideo1(videoToPlay);
-            //initially a video is seekable. The media player will push an info in case this is not true.
-            VIDEO_PLAY_STATE.setVideo1Seekable(videoToPlay != null);
+        if (videoViewIdentifier == CommonDefinitions.VIDEOVIEW1) {
+            videoView = video1;
             video1Player = null;
+            lastPlayedOnVideo1 = videoToPlay;
         } else {
-            VIDEO_PLAY_STATE.setVideo2(videoToPlay);
-
-            //initially a video is seekable. The media player will push an info in case this is not true.
-            VIDEO_PLAY_STATE.setVideo2Seekable(videoToPlay != null);
+            videoView = video2;
             video2Player = null;
+            lastPlayedOnVideo2 = videoToPlay;
         }
-
 
         if (videoToPlay == null) {
             //Unload video
@@ -529,29 +457,20 @@ public class VideoComparatorActivity extends AppCompatActivity {
             //Load video
             videoView.setVideoURI(videoToPlay);
         }
-
-        updateGuiState();
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
             //Load video intent emitted from a load video button
-            VideoView videoView = video1;
+            @CommonDefinitions.VideoViewIdentifier int videoViewIdent = CommonDefinitions.VIDEOVIEW1;
 
             if (requestCode == PICK_VIDEO2_REQUEST) {
-                videoView = video2;
+                videoViewIdent = CommonDefinitions.VIDEOVIEW2;
             }
 
-            loadVideo(data.getData(), videoView);
+            presenter.onLoadVideoRequested(data.getData(), videoViewIdent);
         }
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
-        super.onSaveInstanceState(outState, outPersistentState);
-
-        VIDEO_PLAY_STATE.saveState(outState);
     }
 
     @Override
@@ -568,7 +487,7 @@ public class VideoComparatorActivity extends AppCompatActivity {
         actionMirrorDrawings = menu.findItem(R.id.action_mirrorDraws);
         actionDoNotMirrorDrawings = menu.findItem(R.id.action_doNotMirrorDraws);
 
-        updateGuiState();
+        presenter.onShouldUpdateGuiState();
 
         return true;
     }
@@ -582,22 +501,19 @@ public class VideoComparatorActivity extends AppCompatActivity {
             //TODO show settings.
             return true;
         } else if (id == R.id.action_play) {
-            playVideos();
-            triggerUiInvisible();
+            presenter.onPlayRequested();
             return true;
         } else if (id == R.id.action_pause) {
-            pauseVideos();
-            makeUiVisible();
+            presenter.onPauseRequested();
             return true;
         } else if (id == R.id.action_stop) {
-            stopVideos();
-            makeUiVisible();
+            presenter.onStopRequested();
             return true;
         } else if (id == R.id.action_mute) {
-            muteVideos(true);
+            presenter.onMuteRequested(true);
             return true;
         } else if (id == R.id.action_unmute) {
-            muteVideos(false);
+            presenter.onMuteRequested(false);
             return true;
         } else if (id == R.id.action_clearDraws) {
             if (drawingManager != null) {
@@ -611,7 +527,7 @@ public class VideoComparatorActivity extends AppCompatActivity {
             //toggle mirror drawings state
             if (drawingManager != null) {
                 drawingManager.setIsMirroring(!drawingManager.isMirroring());
-                updateGuiState();
+                presenter.onShouldUpdateGuiState();
             }
             return true;
         }
@@ -619,7 +535,8 @@ public class VideoComparatorActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void muteVideos(boolean muted) {
+    @Override
+    public void muteVideos(boolean muted) {
         float volume = 0.0f;
         if (!muted) {
             volume = 1.0f;
@@ -631,100 +548,123 @@ public class VideoComparatorActivity extends AppCompatActivity {
         if (video2Player != null) {
             video2Player.setVolume(volume, volume);
         }
-
-        VIDEO_PLAY_STATE.setVideoMuted(muted);
-
-        updateGuiState();
     }
 
-    private void playVideos() {
+
+    @Override
+    public void playVideos() {
         video1.start();
         video2.start();
-        VIDEO_PLAY_STATE.setVideo1State(VideoPlayState.State.PLAYING);
-        VIDEO_PLAY_STATE.setVideo2State(VideoPlayState.State.PLAYING);
-
-        updateGuiState();
     }
 
-    private void pauseVideos() {
+    @Override
+    public void pauseVideos() {
         video1.pause();
         video2.pause();
-        VIDEO_PLAY_STATE.setVideo1State(VideoPlayState.State.PAUSING);
-        VIDEO_PLAY_STATE.setVideo2State(VideoPlayState.State.PAUSING);
-
-        updateGuiState();
     }
 
-    private void stopVideos() {
-        //Stop playback unloads the video...
+    @Override
+    public void stopVideos() {
+        //Stop playback unloads the video. Therefore we have to load the video again.
+        //In order to be able to press the play button again without having to load the video manually.
         video1.stopPlayback();
         video2.stopPlayback();
-        loadVideo(VIDEO_PLAY_STATE.getVideo1(), video1);
-        loadVideo(VIDEO_PLAY_STATE.getVideo2(), video2);
-
-        VIDEO_PLAY_STATE.setVideo1State(VideoPlayState.State.LOADED);
-        VIDEO_PLAY_STATE.setVideo2State(VideoPlayState.State.LOADED);
-
-        updateGuiState();
+        loadVideo(lastPlayedOnVideo1, CommonDefinitions.VIDEOVIEW1);
+        loadVideo(lastPlayedOnVideo2, CommonDefinitions.VIDEOVIEW2);
     }
 
-    /**
-     * Updates the state of widgets. E.g. enables / disables the play button according to current video plays.
-     */
-    private void updateGuiState() {
+    @Override
+    public void setMuteButtonState(boolean muted) {
         if (actionMute != null) {
-            actionMute.setVisible(!VIDEO_PLAY_STATE.isVideoMuted());
+            actionMute.setVisible(muted);
         }
         if (actionUnmute != null) {
-            actionUnmute.setVisible(VIDEO_PLAY_STATE.isVideoMuted());
+            actionUnmute.setVisible(!muted);
         }
+    }
 
-        //Action button visibility
-        if (actionPlay != null) {
-            actionPlay.setVisible(VIDEO_PLAY_STATE.shouldShowPlayButton());
-        }
-
-        if (actionPause != null) {
-            actionPause.setVisible(VIDEO_PLAY_STATE.shouldShowPauseButton());
-        }
-
-        if (actionStop != null) {
-            actionStop.setVisible(VIDEO_PLAY_STATE.shouldShowStopButton());
-        }
-
-        //Seekbar visibility: Do not show a seek bar where no video is loaded.
-        if (!canSeekBarBecomeVisible(video1SeekBar)) {
-            video1SeekBar.setVisibility(View.INVISIBLE);
-        }
-        if (!canSeekBarBecomeVisible(video2SeekBar)) {
-            video2SeekBar.setVisibility(View.INVISIBLE);
-        }
-
+    @Override
+    public void setDrawingsMirrorButtonState(boolean mirrored) {
         if (actionMirrorDrawings != null && actionDoNotMirrorDrawings != null) {
             if (drawingManager != null && !drawingManager.isMirroring()) {
-                actionMirrorDrawings.setVisible(!VIDEO_PLAY_STATE.shouldShowMirrorDrawings());
-                actionDoNotMirrorDrawings.setVisible(VIDEO_PLAY_STATE.shouldShowMirrorDrawings());
+                actionMirrorDrawings.setVisible(!mirrored);
+                actionDoNotMirrorDrawings.setVisible(mirrored);
             } else {
-                actionMirrorDrawings.setVisible(VIDEO_PLAY_STATE.shouldShowMirrorDrawings());
-                actionDoNotMirrorDrawings.setVisible(!VIDEO_PLAY_STATE.shouldShowMirrorDrawings());
+                actionMirrorDrawings.setVisible(mirrored);
+                actionDoNotMirrorDrawings.setVisible(!mirrored);
             }
         }
     }
 
-    /**
-     * Determines if the given seek bar's visibility can be visible.
-     * E.g. a seek bar should never be visible if no video is loaded.
-     *
-     * @param seekBar The seek bar to check.
-     * @return true if the provided seek bar can be made visible else false. true if the seek bar is unknown.
-     */
-    private boolean canSeekBarBecomeVisible(SeekBar seekBar) {
-        if (seekBar == video1SeekBar) {
-            return VIDEO_PLAY_STATE.getVideo1() != null && VIDEO_PLAY_STATE.isVideo1Seekable();
-        } else if (seekBar == video2SeekBar) {
-            return VIDEO_PLAY_STATE.getVideo2() != null && VIDEO_PLAY_STATE.isVideo2Seekable();
+    @Override
+    public void setPlayButtonVisibility(boolean visible) {
+        if (actionPlay != null) {
+            actionPlay.setVisible(visible);
+        }
+    }
+
+    @Override
+    public void setPauseButtonVisibility(boolean visible) {
+        if (actionPause != null) {
+            actionPause.setVisible(visible);
+        }
+    }
+
+    @Override
+    public void setStopButtonVisibility(boolean visible) {
+        if (actionStop != null) {
+            actionStop.setVisible(visible);
+        }
+    }
+
+    @Override
+    public void setSeekbarVisibility(@CommonDefinitions.VideoViewIdentifier int videoViewIdentifier, boolean visible) {
+        if (videoViewIdentifier == CommonDefinitions.VIDEOVIEW1) {
+            if (visible) {
+                video1SeekBar.setVisibility(View.VISIBLE);
+            } else {
+                video1SeekBar.setVisibility(View.INVISIBLE);
+            }
         } else {
-            return true;
+            if (visible) {
+                video2SeekBar.setVisibility(View.VISIBLE);
+            } else {
+                video2SeekBar.setVisibility(View.INVISIBLE);
+            }
+        }
+    }
+
+    @Override
+    public void setVideoTimeVisibility(@CommonDefinitions.VideoViewIdentifier int videoViewIdentifier, boolean visible) {
+        if (videoViewIdentifier == CommonDefinitions.VIDEOVIEW1) {
+            if (visible) {
+                videoTime1.setVisibility(View.VISIBLE);
+            } else {
+                videoTime1.setVisibility(View.INVISIBLE);
+            }
+        } else {
+            if (visible) {
+                videoTime2.setVisibility(View.VISIBLE);
+            } else {
+                videoTime2.setVisibility(View.INVISIBLE);
+            }
+        }
+    }
+
+    @Override
+    public void setLoadVideoButtonVisibility(@CommonDefinitions.VideoViewIdentifier int videoViewIdentifier, boolean visible) {
+        if (videoViewIdentifier == CommonDefinitions.VIDEOVIEW1) {
+            if (visible) {
+                loadVideo1Button.setVisibility(View.VISIBLE);
+            } else {
+                loadVideo1Button.setVisibility(View.INVISIBLE);
+            }
+        } else {
+            if (visible) {
+                loadVideo2Button.setVisibility(View.VISIBLE);
+            } else {
+                loadVideo2Button.setVisibility(View.INVISIBLE);
+            }
         }
     }
 }

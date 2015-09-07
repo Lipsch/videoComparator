@@ -19,29 +19,12 @@
 package ch.lipsch.videocomparator;
 
 import android.net.Uri;
-import android.os.Bundle;
 
 /**
  * The video play state stores all information about the current state of the playing videos. E.g. are the videos playing, current time, what videos are loaded...
  * This class is not thread-safe: All reads/writes must be done in the main thread.
  */
 class VideoPlayState {
-
-    /**
-     * This enum denote the states in which a video view can be.
-     */
-    public enum State {
-        EMPTY, LOADED, PLAYING, PAUSING, ERROR
-    }
-
-    private static final String URI_VIDEO1_KEY = "VideoPlayState.uriVideo1";
-    private static final String URI_VIDEO2_KEY = "VideoPlayState.uriVideo2";
-    private static final String PAUSE_VIDEO1_KEY = "VideoPlayState.pauseVideo1";
-    private static final String PAUSE_VIDEO2_KEY = "VideoPlayState.pauseVideo1";
-    private static final String STATE_VIDEO1_KEY = "VideoPlayState.stateVideo1";
-    private static final String STATE_VIDEO2_KEY = "VideoPlayState.stateVideo2";
-    private static final String VIDEO_MUTED_KEY = "VideoPlayState.videoMuted";
-    private static final String MIRROR_DRAWINGS_KEY = "VideoPlayState.mirrorDrawings";
 
     /**
      * A key in the saved state to know that the state has been saved.
@@ -52,8 +35,10 @@ class VideoPlayState {
     private Uri video1 = null;
     private Uri video2 = null;
 
-    private State video1State = State.EMPTY;
-    private State video2State = State.EMPTY;
+    @CommonDefinitions.VideoViewState
+    private int video1State = CommonDefinitions.VIDEO_VIEW_STATE_EMPTY;
+    @CommonDefinitions.VideoViewState
+    private int video2State = CommonDefinitions.VIDEO_VIEW_STATE_EMPTY;
 
     private boolean video1Seekable = true;
     private boolean video2Seekable = true;
@@ -79,7 +64,7 @@ class VideoPlayState {
      */
     public void pauseVideo1(double pauseTimeInSeconds) {
         video1PausedAtInSec = pauseTimeInSeconds;
-        setVideo1State(State.PAUSING);
+        setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_PAUSING);
     }
 
     /**
@@ -89,7 +74,7 @@ class VideoPlayState {
      */
     public void pauseVideo2(double pauseTimeInSeconds) {
         video2PausedAtInSec = pauseTimeInSeconds;
-        setVideo2State(State.PAUSING);
+        setVideo2State(CommonDefinitions.VIDEO_VIEW_STATE_PAUSING);
     }
 
     /**
@@ -111,19 +96,19 @@ class VideoPlayState {
     }
 
     public boolean isVideo1Playing() {
-        return video1State.equals(State.PLAYING);
+        return video1State == CommonDefinitions.VIDEO_VIEW_STATE_PLAYING;
     }
 
-    public void setVideo1State(State state) {
+    public void setVideo1State(@CommonDefinitions.VideoViewState int state) {
         video1State = state;
     }
 
-    public void setVideo2State(State state) {
+    public void setVideo2State(@CommonDefinitions.VideoViewState int state) {
         video2State = state;
     }
 
     public boolean isVideo2Playing() {
-        return video2State.equals(State.PLAYING);
+        return video2State == CommonDefinitions.VIDEO_VIEW_STATE_PLAYING;
     }
 
     public void setVideoMuted(boolean muted) {
@@ -145,7 +130,7 @@ class VideoPlayState {
      */
     public void setVideo1(Uri video1) {
         this.video1 = video1;
-        setVideo1State(State.LOADED);
+        setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_LOADED);
         video1PausedAtInSec = null;
     }
 
@@ -160,75 +145,10 @@ class VideoPlayState {
      */
     public void setVideo2(Uri video2) {
         this.video2 = video2;
-        setVideo2State(State.LOADED);
+        setVideo2State(CommonDefinitions.VIDEO_VIEW_STATE_LOADED);
         video2PausedAtInSec = null;
     }
 
-    public void saveState(Bundle bundle) {
-        bundle.putBoolean(VIDEO_MUTED_KEY, videoMuted);
-        bundle.putBoolean(HAS_VIDEO_STATE_KEY, true);
-        bundle.putBoolean(MIRROR_DRAWINGS_KEY, shouldShowMirrorDrawings());
-
-        if (video1 == null) {
-            bundle.putString(URI_VIDEO1_KEY, null);
-        } else {
-            bundle.putString(URI_VIDEO1_KEY, video1.toString());
-            bundle.putInt(STATE_VIDEO1_KEY, video1State.ordinal());
-
-            if (video1PausedAtInSec != null) {
-                bundle.putDouble(PAUSE_VIDEO1_KEY, video1PausedAtInSec);
-            }
-        }
-
-        if (video2 == null) {
-            bundle.putString(URI_VIDEO2_KEY, null);
-        } else {
-            bundle.putString(URI_VIDEO2_KEY, video2.toString());
-            bundle.putInt(STATE_VIDEO2_KEY, video1State.ordinal());
-
-            if (video2PausedAtInSec != null) {
-                bundle.putDouble(PAUSE_VIDEO2_KEY, video2PausedAtInSec);
-            }
-        }
-    }
-
-    public void loadState(Bundle bundle) {
-        if (bundle == null || !bundle.getBoolean(HAS_VIDEO_STATE_KEY)) {
-            return;
-        }
-
-        videoMuted = bundle.getBoolean(VIDEO_MUTED_KEY);
-        mirrorDrawings = bundle.getBoolean(MIRROR_DRAWINGS_KEY);
-
-        String video1Uri = bundle.getString(URI_VIDEO1_KEY);
-        if (video1Uri == null) {
-            setVideo1(null);
-        } else {
-            setVideo1(Uri.parse(video1Uri));
-
-            double pauseTimeVideo1 = bundle.getDouble(PAUSE_VIDEO1_KEY);
-            if (pauseTimeVideo1 != 0.0) {
-                pauseVideo1(pauseTimeVideo1);
-            }
-
-            video1State = State.values()[bundle.getInt(STATE_VIDEO1_KEY)];
-        }
-
-        String video2Uri = bundle.getString(URI_VIDEO2_KEY);
-
-        if (video2Uri == null) {
-            setVideo2(null);
-        } else {
-            setVideo2(Uri.parse(video2Uri));
-
-            double pauseTimeVideo2 = bundle.getDouble(PAUSE_VIDEO2_KEY);
-            if (pauseTimeVideo2 != 0.0) {
-                pauseVideo2(pauseTimeVideo2);
-            }
-
-            video2State = State.values()[bundle.getInt(STATE_VIDEO2_KEY)];
-        }
-    }
 
     /**
      * Determines if the play button should be shown. That is a video is loaded and not playing atm.

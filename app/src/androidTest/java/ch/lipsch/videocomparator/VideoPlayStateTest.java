@@ -1,3 +1,22 @@
+/*
+ * Copyright (C) 2015 Erwin Betschart
+ *
+ * This file is part of Video Comparator.
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 3 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package ch.lipsch.videocomparator;
 
 import android.net.Uri;
@@ -48,7 +67,7 @@ public class VideoPlayStateTest extends TestCase {
         target.setVideo1(fakeVideoUri1);
         target.setVideo2(fakeVideoUri2);
 
-        target.setVideo1State(VideoPlayState.State.PLAYING);
+        target.setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
 
         assertFalse(target.shouldShowPlayButton());
     }
@@ -61,8 +80,8 @@ public class VideoPlayStateTest extends TestCase {
         target.setVideo1(fakeVideoUri1);
         target.setVideo2(fakeVideoUri2);
 
-        target.setVideo1State(VideoPlayState.State.PLAYING);
-        target.setVideo2State(VideoPlayState.State.PLAYING);
+        target.setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
+        target.setVideo2State(CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
 
         assertFalse(target.shouldShowPlayButton());
     }
@@ -93,7 +112,7 @@ public class VideoPlayStateTest extends TestCase {
         target.setVideo1(fakeVideoUri);
         target.setVideo2(null);
 
-        target.setVideo1State(VideoPlayState.State.PLAYING);
+        target.setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
 
         assertTrue(target.shouldShowPauseButton());
     }
@@ -124,7 +143,7 @@ public class VideoPlayStateTest extends TestCase {
         target.setVideo1(fakeVideoUri);
         target.setVideo2(null);
 
-        target.setVideo1State(VideoPlayState.State.PLAYING);
+        target.setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
 
         assertTrue(target.shouldShowStopButton());
     }
@@ -136,7 +155,7 @@ public class VideoPlayStateTest extends TestCase {
         target.setVideo1(fakeVideoUri);
         target.setVideo2(null);
 
-        target.setVideo1State(VideoPlayState.State.PAUSING);
+        target.setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_PAUSING);
         target.pauseVideo1(1.23);
 
         assertTrue(target.shouldShowStopButton());
@@ -149,7 +168,7 @@ public class VideoPlayStateTest extends TestCase {
         target.setVideo1(fakeVideoUri);
         target.setVideo2(null);
 
-        target.setVideo1State(VideoPlayState.State.PLAYING);
+        target.setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
         target.pauseVideo1(1.23);
 
         assertTrue(target.shouldShowPlayButton());
