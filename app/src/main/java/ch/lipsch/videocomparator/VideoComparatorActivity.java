@@ -84,6 +84,8 @@ public class VideoComparatorActivity extends AppCompatActivity implements VideoC
     private MenuItem actionStop = null;
     private MenuItem actionMute = null;
     private MenuItem actionUnmute = null;
+    private MenuItem actionEnableDrawings = null;
+    private MenuItem actionDisableDrawings = null;
 
     private SeekBar video1SeekBar = null;
     private SeekBar video2SeekBar = null;
@@ -325,18 +327,14 @@ public class VideoComparatorActivity extends AppCompatActivity implements VideoC
         video1.setOnInfoListener(new MediaPlayer.OnInfoListener() {
             @Override
             public boolean onInfo(MediaPlayer mp, int what, int extra) {
-                boolean isHandled = handleVideoInfo(video1, what);
-
-                return isHandled;
+                return handleVideoInfo(video1, what);
             }
         });
 
         video2.setOnInfoListener(new MediaPlayer.OnInfoListener() {
             @Override
             public boolean onInfo(MediaPlayer mp, int what, int extra) {
-                boolean isHandled = handleVideoInfo(video2, what);
-
-                return isHandled;
+                return handleVideoInfo(video2, what);
             }
         });
 
@@ -486,6 +484,8 @@ public class VideoComparatorActivity extends AppCompatActivity implements VideoC
         actionUnmute = menu.findItem(R.id.action_unmute);
         actionMirrorDrawings = menu.findItem(R.id.action_mirrorDraws);
         actionDoNotMirrorDrawings = menu.findItem(R.id.action_doNotMirrorDraws);
+        actionEnableDrawings = menu.findItem(R.id.action_enable_Draws);
+        actionDisableDrawings = menu.findItem(R.id.action_disable_Draws);
 
         presenter.onShouldUpdateGuiState();
 
@@ -530,6 +530,19 @@ public class VideoComparatorActivity extends AppCompatActivity implements VideoC
                 presenter.onShouldUpdateGuiState();
             }
             return true;
+        } else if (id == R.id.action_enable_Draws) {
+            //Enable drawing on video screen
+            if (drawingManager != null) {
+                drawingManager.enableDrawings(true);
+            }
+            presenter.onDrawingEnabled(true);
+        } else if (id == R.id.action_disable_Draws) {
+            //Disable drawing on video screen
+            //Enable drawing on video screen
+            if (drawingManager != null) {
+                drawingManager.enableDrawings(false);
+            }
+            presenter.onDrawingEnabled(false);
         }
 
         return super.onOptionsItemSelected(item);
@@ -665,6 +678,16 @@ public class VideoComparatorActivity extends AppCompatActivity implements VideoC
             } else {
                 loadVideo2Button.setVisibility(View.INVISIBLE);
             }
+        }
+    }
+
+    @Override
+    public void setDrawingsEnabledButtonState(boolean visible) {
+        if (actionEnableDrawings != null) {
+            actionEnableDrawings.setVisible(!visible);
+        }
+        if (actionDisableDrawings != null) {
+            actionDisableDrawings.setVisible(visible);
         }
     }
 }

@@ -56,6 +56,7 @@ class VideoPlayState {
     private Double video2PausedAtInSec = null;
 
     private boolean mirrorDrawings = true;
+    private boolean drawingEnabled = false;
 
     /**
      * The video 1 is paused at the given time in seconds.
@@ -196,5 +197,13 @@ class VideoPlayState {
 
     public boolean shouldShowMirrorDrawings() {
         return this.mirrorDrawings;
+    }
+
+    public void setDrawingEnabled(boolean drawingEnabled) {
+        this.drawingEnabled = drawingEnabled;
+    }
+
+    public boolean isDrawingEnabled() {
+        return drawingEnabled;
     }
 }

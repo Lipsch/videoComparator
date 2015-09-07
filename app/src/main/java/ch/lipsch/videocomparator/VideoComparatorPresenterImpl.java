@@ -116,6 +116,7 @@ public class VideoComparatorPresenterImpl implements VideoComparatorPresenter {
         view.setPauseButtonVisibility(VIDEO_PLAY_STATE.shouldShowPauseButton());
         view.setStopButtonVisibility(VIDEO_PLAY_STATE.shouldShowStopButton());
         view.setDrawingsMirrorButtonState(VIDEO_PLAY_STATE.shouldShowMirrorDrawings());
+        view.setDrawingsEnabledButtonState(VIDEO_PLAY_STATE.isDrawingEnabled());
 
         //Seekbar visibility: Do not show a seek bar where no video is loaded.
         view.setSeekbarVisibility(CommonDefinitions.VIDEOVIEW1, canSeekBarBecomeVisible(CommonDefinitions.VIDEOVIEW1));
@@ -263,5 +264,11 @@ public class VideoComparatorPresenterImpl implements VideoComparatorPresenter {
             VIDEO_PLAY_STATE.setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_ERROR);
             makeUiVisible();
         }
+    }
+
+    @Override
+    public void onDrawingEnabled(boolean drawingEnabled) {
+        VIDEO_PLAY_STATE.setDrawingEnabled(drawingEnabled);
+        updateGuiState();
     }
 }

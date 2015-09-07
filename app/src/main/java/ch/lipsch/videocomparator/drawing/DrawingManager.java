@@ -33,6 +33,7 @@ public final class DrawingManager implements AutoCloseable, DrawingViewObserver 
     private final DrawingView drawingView2;
 
     private boolean isMirroring = true;
+    private boolean isEnabled = false;
 
     /**
      * Creates a new drawing manager. The provided drawing views must not be null!
@@ -64,11 +65,13 @@ public final class DrawingManager implements AutoCloseable, DrawingViewObserver 
 
     @Override
     public void update(DrawingView observable, Path path) {
-        if (isMirroring) {
-            drawingView1.drawPath(path);
-            drawingView2.drawPath(path);
-        } else {
-            observable.drawPath(path);
+        if (isEnabled) {
+            if (isMirroring) {
+                drawingView1.drawPath(path);
+                drawingView2.drawPath(path);
+            } else {
+                observable.drawPath(path);
+            }
         }
     }
 
@@ -84,5 +87,13 @@ public final class DrawingManager implements AutoCloseable, DrawingViewObserver 
     public void clearDraws() {
         drawingView1.clearDraws();
         drawingView2.clearDraws();
+    }
+
+    public void enableDrawings(boolean enabled) {
+        this.isEnabled = enabled;
+    }
+
+    public boolean isEnabled() {
+        return isEnabled;
     }
 }

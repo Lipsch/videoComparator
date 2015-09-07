@@ -92,4 +92,11 @@ public interface VideoComparatorPresenter {
      * @param videoViewIdentifier The identifier of the video view which failed to load  the video.
      */
     void onVideoLoadError(@CommonDefinitions.VideoViewIdentifier int videoViewIdentifier);
+
+    /**
+     * Called when the user wants to en-/disalbe the drawing.
+     *
+     * @param drawingEnabled If true the user wants to enable the drawing else diable the drawing.
+     */
+    void onDrawingEnabled(boolean drawingEnabled);
 }

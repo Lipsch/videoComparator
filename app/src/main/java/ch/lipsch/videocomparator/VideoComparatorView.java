@@ -100,6 +100,13 @@ public interface VideoComparatorView {
     void setLoadVideoButtonVisibility(@CommonDefinitions.VideoViewIdentifier int videoViewIdentifier, boolean visible);
 
     /**
+     * Sets the visibility of the en/disable drawing buttons.
+     *
+     * @param visible If true the enable drawings button is visible else the disable drawings button is visible.
+     */
+    void setDrawingsEnabledButtonState(boolean visible);
+
+    /**
      * Mutes / unmutes the videos.
      *
      * @param muted If true videos will be muted.

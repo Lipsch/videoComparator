@@ -8,57 +8,63 @@
         android:title="@string/action_settings"
         app:showAsAction="never" />
     <item
+        android:id="@+id/action_enable_Draws"
+        android:title="@string/action_enable_Draws"
+        android:visible="true"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_disable_Draws"
+        android:title="@string/action_disable_Draws"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/action_clearDraws"
         android:title="@string/action_clearDraws"
-        android:icon="@drawable/ic_audio_vol_mute_am"
         android:visible="true"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_pickColor"
         android:title="@string/action_pickColor"
-        android:icon="@drawable/ic_audio_vol_mute_am"
         android:visible="true"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_mirrorDraws"
         android:title="@string/action_mirrorDraws"
-        android:icon="@drawable/ic_audio_vol_mute_am"
         android:visible="true"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_doNotMirrorDraws"
         android:title="@string/action_doNotMirrorDraws"
-        android:icon="@drawable/ic_audio_vol_mute_am"
         android:visible="false"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_mute"
-        android:title="@string/action_mute"
         android:icon="@drawable/ic_audio_vol_mute_am"
+        android:title="@string/action_mute"
         android:visible="false"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_unmute"
-        android:title="@string/action_unmute"
         android:icon="@drawable/ic_audio_vol_am"
+        android:title="@string/action_unmute"
         android:visible="true"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_play"
-        android:title="@string/action_play"
         android:icon="@drawable/ic_action_play"
+        android:title="@string/action_play"
         android:visible="false"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_pause"
-        android:title="@string/action_pause"
         android:icon="@drawable/ic_action_pause"
+        android:title="@string/action_pause"
         android:visible="false"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_stop"
-        android:title="@string/action_stop"
         android:icon="@drawable/ic_action_stop"
+        android:title="@string/action_stop"
         android:visible="false"
         app:showAsAction="ifRoom" />
 </menu>
