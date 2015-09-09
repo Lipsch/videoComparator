@@ -20,35 +20,41 @@
 package ch.lipsch.videocomparator;
 
 import android.net.Uri;
+import android.support.test.runner.AndroidJUnit4;
 
-import junit.framework.TestCase;
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 /**
  * Test for the class VideoPlayState.
  */
+@RunWith(AndroidJUnit4.class)
+public class VideoPlayStateTest {
 
-public class VideoPlayStateTest extends TestCase {
-
-    public void testShowPlayButtonNoVideoLoaded() {
+    @Test
+    public void showPlayButtonNoVideoLoaded() {
         VideoPlayState target = new VideoPlayState();
 
         target.setVideo1(null);
         target.setVideo2(null);
 
-        assertFalse(target.shouldShowPlayButton());
+        Assert.assertFalse(target.shouldShowPlayButton());
     }
 
-    public void testShowPlayButtonOneVideoLoaded() {
+    @Test
+    public void showPlayButtonOneVideoLoaded() {
         VideoPlayState target = new VideoPlayState();
 
         Uri fakeVideoUri = Uri.parse("file:///somefile.avi");
         target.setVideo1(fakeVideoUri);
         target.setVideo2(null);
 
-        assertTrue(target.shouldShowPlayButton());
+        Assert.assertTrue(target.shouldShowPlayButton());
     }
 
-    public void testShowPlayButtonTwoVideosLoaded() {
+    @Test
+    public void showPlayButtonTwoVideosLoaded() {
         VideoPlayState target = new VideoPlayState();
 
         Uri fakeVideoUri1 = Uri.parse("file:///somefile.avi");
@@ -56,10 +62,11 @@ public class VideoPlayStateTest extends TestCase {
         target.setVideo1(fakeVideoUri1);
         target.setVideo2(fakeVideoUri2);
 
-        assertTrue(target.shouldShowPlayButton());
+        Assert.assertTrue(target.shouldShowPlayButton());
     }
 
-    public void testShowPlayButtonOnePlaying() {
+    @Test
+    public void showPlayButtonOnePlaying() {
         VideoPlayState target = new VideoPlayState();
 
         Uri fakeVideoUri1 = Uri.parse("file:///somefile.avi");
@@ -69,10 +76,11 @@ public class VideoPlayStateTest extends TestCase {
 
         target.setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
 
-        assertFalse(target.shouldShowPlayButton());
+        Assert.assertFalse(target.shouldShowPlayButton());
     }
 
-    public void testShowPlayButtonAllPlaying() {
+    @Test
+    public void showPlayButtonAllPlaying() {
         VideoPlayState target = new VideoPlayState();
 
         Uri fakeVideoUri1 = Uri.parse("file:///somefile.avi");
@@ -83,29 +91,32 @@ public class VideoPlayStateTest extends TestCase {
         target.setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
         target.setVideo2State(CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
 
-        assertFalse(target.shouldShowPlayButton());
+        Assert.assertFalse(target.shouldShowPlayButton());
     }
 
-    public void testShowPauseButtonNoVideos() {
+    @Test
+    public void showPauseButtonNoVideos() {
         VideoPlayState target = new VideoPlayState();
 
         target.setVideo1(null);
         target.setVideo2(null);
 
-        assertFalse(target.shouldShowPauseButton());
+        Assert.assertFalse(target.shouldShowPauseButton());
     }
 
-    public void testShowPauseButtonVideoLoadedNotPlaying() {
+    @Test
+    public void showPauseButtonVideoLoadedNotPlaying() {
         VideoPlayState target = new VideoPlayState();
 
         Uri fakeVideoUri = Uri.parse("file:///somefile.avi");
         target.setVideo1(fakeVideoUri);
         target.setVideo2(null);
 
-        assertFalse(target.shouldShowPauseButton());
+        Assert.assertFalse(target.shouldShowPauseButton());
     }
 
-    public void testShowPauseButtonVideoPlaying() {
+    @Test
+    public void showPauseButtonVideoPlaying() {
         VideoPlayState target = new VideoPlayState();
 
         Uri fakeVideoUri = Uri.parse("file:///somefile.avi");
@@ -114,29 +125,32 @@ public class VideoPlayStateTest extends TestCase {
 
         target.setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
 
-        assertTrue(target.shouldShowPauseButton());
+        Assert.assertTrue(target.shouldShowPauseButton());
     }
 
-    public void testShowStopButtonNoVideos() {
+    @Test
+    public void showStopButtonNoVideos() {
         VideoPlayState target = new VideoPlayState();
 
         target.setVideo1(null);
         target.setVideo2(null);
 
-        assertFalse(target.shouldShowStopButton());
+        Assert.assertFalse(target.shouldShowStopButton());
     }
 
-    public void testShowStopButtonVideoLoaded() {
+    @Test
+    public void showStopButtonVideoLoaded() {
         VideoPlayState target = new VideoPlayState();
 
         Uri fakeVideoUri = Uri.parse("file:///somefile.avi");
         target.setVideo1(fakeVideoUri);
         target.setVideo2(null);
 
-        assertFalse(target.shouldShowStopButton());
+        Assert.assertFalse(target.shouldShowStopButton());
     }
 
-    public void testShowStopButtonVideoPlaying() {
+    @Test
+    public void showStopButtonVideoPlaying() {
         VideoPlayState target = new VideoPlayState();
 
         Uri fakeVideoUri = Uri.parse("file:///somefile.avi");
@@ -145,10 +159,11 @@ public class VideoPlayStateTest extends TestCase {
 
         target.setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
 
-        assertTrue(target.shouldShowStopButton());
+        Assert.assertTrue(target.shouldShowStopButton());
     }
 
-    public void testShowStopButtonVideoPaused() {
+    @Test
+    public void showStopButtonVideoPaused() {
         VideoPlayState target = new VideoPlayState();
 
         Uri fakeVideoUri = Uri.parse("file:///somefile.avi");
@@ -158,10 +173,11 @@ public class VideoPlayStateTest extends TestCase {
         target.setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_PAUSING);
         target.pauseVideo1(1.23);
 
-        assertTrue(target.shouldShowStopButton());
+        Assert.assertTrue(target.shouldShowStopButton());
     }
 
-    public void testShowPlayButtonVideoPaused() {
+    @Test
+    public void showPlayButtonVideoPaused() {
         VideoPlayState target = new VideoPlayState();
 
         Uri fakeVideoUri = Uri.parse("file:///somefile.avi");
@@ -171,6 +187,6 @@ public class VideoPlayStateTest extends TestCase {
         target.setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
         target.pauseVideo1(1.23);
 
-        assertTrue(target.shouldShowPlayButton());
+        Assert.assertTrue(target.shouldShowPlayButton());
     }
 }

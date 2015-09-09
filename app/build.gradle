@@ -10,6 +10,8 @@ android {
         targetSdkVersion 22
         versionCode 1
         versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
@@ -17,9 +19,31 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    //Needed for junit4 tests. There are two equal files when the test apk is packaged.
+    //Origin 1: junit-4.11.jar
+    //Origin 2: hamcrest-core-1.3.jar
+    packagingOptions {
+        exclude 'LICENSE.txt'
+    }
+
+    //Fixes 'method ... not mocked problem'. Prevents that all android classes throw an exception on calling any method.
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:22.1.1'
+
+    //Used for junit4 tests on device
+    androidTestCompile 'junit:junit:4.+'
+    androidTestCompile('com.android.support.test:testing-support-lib:0.1') {
+        exclude group: 'junit'  // junit:junit-dep conflicts with junit:unit
+    }
+
+    //Local JVM test
+    testCompile 'junit:junit:4.+'
+    testCompile 'org.mockito:mockito-core:1.+'
 }
