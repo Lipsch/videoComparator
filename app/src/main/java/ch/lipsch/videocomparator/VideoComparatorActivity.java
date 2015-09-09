@@ -139,19 +139,17 @@ public class VideoComparatorActivity extends AppCompatActivity implements VideoC
 
         presenter = new VideoComparatorPresenterImpl(this);
 
-        //Make the ui visible on any touch and if playing make it invisible again.
-        // The presenter will do the needed logic.
-        findViewById(android.R.id.content).setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                presenter.onTouch();
-
-                return false;
-            }
-        });
-
         registerVideoListeners();
         registerOpenVideoFileListener();
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        //Make the ui visible on any touch and if playing make it invisible again.
+        // The presenter will do the needed logic.
+        presenter.onTouch();
+
+        return false;
     }
 
     @Override

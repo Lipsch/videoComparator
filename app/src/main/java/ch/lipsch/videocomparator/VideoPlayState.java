@@ -206,4 +206,12 @@ class VideoPlayState {
     public boolean isDrawingEnabled() {
         return drawingEnabled;
     }
+
+    public boolean isVideoLoaded(@CommonDefinitions.VideoViewIdentifier int videoViewIdentifier) {
+        if (videoViewIdentifier == CommonDefinitions.VIDEOVIEW1) {
+            return getVideo1() != null;
+        } else {
+            return getVideo2() != null;
+        }
+    }
 }
