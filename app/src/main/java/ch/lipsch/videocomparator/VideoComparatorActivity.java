@@ -260,8 +260,8 @@ public class VideoComparatorActivity extends AppCompatActivity implements VideoC
                     //Formatted milliseconds to 0:21:55 -> h:mm:ss
                     timeField.setText(String.format("%d:%02d:%02d",
                             TimeUnit.MILLISECONDS.toHours(currentPos),
-                            TimeUnit.MILLISECONDS.toMinutes(currentPos),
-                            TimeUnit.MILLISECONDS.toSeconds(currentPos)));
+                            TimeUnit.MILLISECONDS.toMinutes(currentPos) % 60,
+                            TimeUnit.MILLISECONDS.toSeconds(currentPos) % 60));
                 }
             }
         }
