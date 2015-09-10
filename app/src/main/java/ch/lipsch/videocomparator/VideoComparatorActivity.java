@@ -21,10 +21,14 @@ package ch.lipsch.videocomparator;
 
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaPlayer;
+import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -411,6 +415,10 @@ public class VideoComparatorActivity extends AppCompatActivity implements VideoC
                 }
                 isHandled = true;
                 break;
+            case MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START:
+                //Remove the background (first frame) the video is now rendered.
+                //Which was set during loading the video. -> loadVideo(...)
+                videoView.setBackground(null);
 
             default:
                 isHandled = false;
@@ -452,6 +460,14 @@ public class VideoComparatorActivity extends AppCompatActivity implements VideoC
         } else {
             //Load video
             videoView.setVideoURI(videoToPlay);
+
+            // By default the first frame of the loaded video is not shown. Setting the "thumb" as the background image.
+            // The background image is removed in the onPrepareListener: See registerVideoListeners().
+            Bitmap thumb = ThumbnailUtils.createVideoThumbnail(videoToPlay.getPath(),
+                    MediaStore.Images.Thumbnails.FULL_SCREEN_KIND);
+
+            BitmapDrawable bitmapDrawable = new BitmapDrawable(null, thumb);
+            videoView.setBackground(bitmapDrawable);
         }
     }
 
