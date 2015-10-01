@@ -4,66 +4,73 @@
     tools:context=".VideoComparatorActivity">
     <item
         android:id="@+id/action_settings"
+        android:icon="@drawable/ic_settings"
         android:orderInCategory="100"
         android:title="@string/action_settings"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_enable_Draws"
+        android:icon="@drawable/ic_drawing"
         android:title="@string/action_enable_Draws"
         android:visible="true"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_disable_Draws"
+        android:icon="@drawable/ic_no_drawing"
         android:title="@string/action_disable_Draws"
         android:visible="false"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_clearDraws"
+        android:icon="@drawable/ic_clean"
         android:title="@string/action_clearDraws"
         android:visible="true"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_pickColor"
+        android:icon="@drawable/ic_palette"
         android:title="@string/action_pickColor"
         android:visible="true"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_mirrorDraws"
+        android:icon="@drawable/ic_mirror"
         android:title="@string/action_mirrorDraws"
         android:visible="true"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_doNotMirrorDraws"
+        android:icon="@drawable/ic_do_not_mirror"
         android:title="@string/action_doNotMirrorDraws"
         android:visible="false"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_mute"
-        android:icon="@drawable/ic_audio_vol_mute_am"
+        android:icon="@drawable/ic_volume_off"
         android:title="@string/action_mute"
         android:visible="false"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_unmute"
-        android:icon="@drawable/ic_audio_vol_am"
+        android:icon="@drawable/ic_volume_up"
         android:title="@string/action_unmute"
         android:visible="true"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_play"
-        android:icon="@drawable/ic_action_play"
+        android:icon="@drawable/ic_play_arrow"
         android:title="@string/action_play"
         android:visible="false"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_pause"
-        android:icon="@drawable/ic_action_pause"
+        android:icon="@drawable/ic_pause"
         android:title="@string/action_pause"
         android:visible="false"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_stop"
-        android:icon="@drawable/ic_action_stop"
+        android:icon="@drawable/ic_stop"
         android:title="@string/action_stop"
         android:visible="false"
         app:showAsAction="ifRoom" />
