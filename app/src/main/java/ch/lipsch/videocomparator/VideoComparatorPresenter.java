@@ -99,4 +99,11 @@ public interface VideoComparatorPresenter {
      * @param drawingEnabled If true the user wants to enable the drawing else diable the drawing.
      */
     void onDrawingEnabled(boolean drawingEnabled);
+
+    /**
+     * Called when a video playback ended.
+     *
+     * @param videoViewIdentifier Identifies the video whose playback ended.
+     */
+    void onVideoEnded(@CommonDefinitions.VideoViewIdentifier int videoViewIdentifier);
 }

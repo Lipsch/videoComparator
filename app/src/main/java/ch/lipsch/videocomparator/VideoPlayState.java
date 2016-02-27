@@ -65,7 +65,7 @@ class VideoPlayState {
      */
     public void pauseVideo1(double pauseTimeInSeconds) {
         video1PausedAtInSec = pauseTimeInSeconds;
-        setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_PAUSING);
+        setVideoState(CommonDefinitions.VIDEOVIEW1, CommonDefinitions.VIDEO_VIEW_STATE_PAUSING);
     }
 
     /**
@@ -75,7 +75,7 @@ class VideoPlayState {
      */
     public void pauseVideo2(double pauseTimeInSeconds) {
         video2PausedAtInSec = pauseTimeInSeconds;
-        setVideo2State(CommonDefinitions.VIDEO_VIEW_STATE_PAUSING);
+        setVideoState(CommonDefinitions.VIDEOVIEW2, CommonDefinitions.VIDEO_VIEW_STATE_PAUSING);
     }
 
     /**
@@ -100,12 +100,13 @@ class VideoPlayState {
         return video1State == CommonDefinitions.VIDEO_VIEW_STATE_PLAYING;
     }
 
-    public void setVideo1State(@CommonDefinitions.VideoViewState int state) {
-        video1State = state;
-    }
+    public void setVideoState(@CommonDefinitions.VideoViewIdentifier int videoViewIdentifier, int state) {
+        if (videoViewIdentifier == CommonDefinitions.VIDEOVIEW1) {
+            video1State = state;
+        } else {
+            video2State = state;
+        }
 
-    public void setVideo2State(@CommonDefinitions.VideoViewState int state) {
-        video2State = state;
     }
 
     public boolean isVideo2Playing() {
@@ -131,7 +132,7 @@ class VideoPlayState {
      */
     public void setVideo1(Uri video1) {
         this.video1 = video1;
-        setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_LOADED);
+        setVideoState(CommonDefinitions.VIDEOVIEW1, CommonDefinitions.VIDEO_VIEW_STATE_LOADED);
         video1PausedAtInSec = null;
     }
 
@@ -146,7 +147,7 @@ class VideoPlayState {
      */
     public void setVideo2(Uri video2) {
         this.video2 = video2;
-        setVideo2State(CommonDefinitions.VIDEO_VIEW_STATE_LOADED);
+        setVideoState(CommonDefinitions.VIDEOVIEW2, CommonDefinitions.VIDEO_VIEW_STATE_LOADED);
         video2PausedAtInSec = null;
     }
 

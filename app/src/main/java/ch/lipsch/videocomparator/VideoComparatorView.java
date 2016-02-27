@@ -121,4 +121,11 @@ public interface VideoComparatorView {
      * @param videoViewIdentifier The video view in which to load the video.
      */
     void loadVideo(Uri videoToPlay, @CommonDefinitions.VideoViewIdentifier int videoViewIdentifier);
+
+    /**
+     * Seeks the video in the given video view to the given time.
+     * @param videoview The video view on which to operate.
+     * @param timeInMilliseconds Time the video is seeked to in milliseconds.
+     */
+    void seekVideoTo(@CommonDefinitions.VideoViewIdentifier int videoview, int timeInMilliseconds);
 }

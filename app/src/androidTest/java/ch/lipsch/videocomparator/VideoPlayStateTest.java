@@ -74,7 +74,7 @@ public class VideoPlayStateTest {
         target.setVideo1(fakeVideoUri1);
         target.setVideo2(fakeVideoUri2);
 
-        target.setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
+        target.setVideoState(CommonDefinitions.VIDEOVIEW1, CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
 
         Assert.assertFalse(target.shouldShowPlayButton());
     }
@@ -88,8 +88,8 @@ public class VideoPlayStateTest {
         target.setVideo1(fakeVideoUri1);
         target.setVideo2(fakeVideoUri2);
 
-        target.setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
-        target.setVideo2State(CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
+        target.setVideoState(CommonDefinitions.VIDEOVIEW1, CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
+        target.setVideoState(CommonDefinitions.VIDEOVIEW2, CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
 
         Assert.assertFalse(target.shouldShowPlayButton());
     }
@@ -123,7 +123,7 @@ public class VideoPlayStateTest {
         target.setVideo1(fakeVideoUri);
         target.setVideo2(null);
 
-        target.setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
+        target.setVideoState(CommonDefinitions.VIDEOVIEW1, CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
 
         Assert.assertTrue(target.shouldShowPauseButton());
     }
@@ -157,7 +157,7 @@ public class VideoPlayStateTest {
         target.setVideo1(fakeVideoUri);
         target.setVideo2(null);
 
-        target.setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
+        target.setVideoState(CommonDefinitions.VIDEOVIEW1, CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
 
         Assert.assertTrue(target.shouldShowStopButton());
     }
@@ -170,7 +170,7 @@ public class VideoPlayStateTest {
         target.setVideo1(fakeVideoUri);
         target.setVideo2(null);
 
-        target.setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_PAUSING);
+        target.setVideoState(CommonDefinitions.VIDEOVIEW1, CommonDefinitions.VIDEO_VIEW_STATE_PAUSING);
         target.pauseVideo1(1.23);
 
         Assert.assertTrue(target.shouldShowStopButton());
@@ -184,7 +184,7 @@ public class VideoPlayStateTest {
         target.setVideo1(fakeVideoUri);
         target.setVideo2(null);
 
-        target.setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
+        target.setVideoState(CommonDefinitions.VIDEOVIEW1, CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
         target.pauseVideo1(1.23);
 
         Assert.assertTrue(target.shouldShowPlayButton());

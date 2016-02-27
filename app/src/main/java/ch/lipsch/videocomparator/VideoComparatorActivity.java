@@ -141,7 +141,7 @@ public class VideoComparatorActivity extends AppCompatActivity implements VideoC
         loadVideo1Button = (Button) findViewById(R.id.loadVideo1Button);
         loadVideo2Button = (Button) findViewById(R.id.loadVideo2Button);
 
-        presenter = new VideoComparatorPresenterImpl(this);
+        presenter = new VideoComparatorPresenterImpl(this, ((VideoComparatorApplication) getApplication()).getVideoPlayState());
 
         registerVideoListeners();
         registerOpenVideoFileListener();
@@ -469,6 +469,20 @@ public class VideoComparatorActivity extends AppCompatActivity implements VideoC
             BitmapDrawable bitmapDrawable = new BitmapDrawable(null, thumb);
             videoView.setBackground(bitmapDrawable);
         }
+    }
+
+    @Override
+    public void seekVideoTo(int videoViewIdentifier, int timeInMilliseconds) {
+        VideoView videoView = null;
+
+        //Remember current video
+        if (videoViewIdentifier == CommonDefinitions.VIDEOVIEW1) {
+            videoView = video1;
+        } else {
+            videoView = video2;
+        }
+
+        videoView.seekTo(timeInMilliseconds);
     }
 
     @Override

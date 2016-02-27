@@ -34,14 +34,11 @@ public class VideoComparatorPresenterImpl implements VideoComparatorPresenter {
     private static final long INVISIBILITY_TOGGLER_DELAY_MS = 2000;
 
     /**
-     * Stores the current state of the videos. In order to restore it in case of app going to background or device orientation
-     */
-    private static final VideoPlayState VIDEO_PLAY_STATE = new VideoPlayState();
-
-    /**
      * The view (MVP).
      */
     private VideoComparatorView view;
+
+    private VideoPlayState videoPlayState;
 
     /**
      * A handler which makes some ui controls invisible.
@@ -65,16 +62,17 @@ public class VideoComparatorPresenterImpl implements VideoComparatorPresenter {
      *
      * @param view The view which is managed by this presenter.
      */
-    public VideoComparatorPresenterImpl(@NonNull VideoComparatorView view) {
+    public VideoComparatorPresenterImpl(@NonNull VideoComparatorView view, @NonNull VideoPlayState videoPlayState) {
         this.view = view;
+        this.videoPlayState = videoPlayState;
 
         restoreState();
         makeUiVisible();
     }
 
     private void play() {
-        VIDEO_PLAY_STATE.setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
-        VIDEO_PLAY_STATE.setVideo2State(CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
+        videoPlayState.setVideoState(CommonDefinitions.VIDEOVIEW1, CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
+        videoPlayState.setVideoState(CommonDefinitions.VIDEOVIEW2, CommonDefinitions.VIDEO_VIEW_STATE_PLAYING);
 
         view.playVideos();
 
@@ -83,8 +81,8 @@ public class VideoComparatorPresenterImpl implements VideoComparatorPresenter {
     }
 
     private void pause() {
-        VIDEO_PLAY_STATE.setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_PAUSING);
-        VIDEO_PLAY_STATE.setVideo2State(CommonDefinitions.VIDEO_VIEW_STATE_PAUSING);
+        videoPlayState.setVideoState(CommonDefinitions.VIDEOVIEW1, CommonDefinitions.VIDEO_VIEW_STATE_PAUSING);
+        videoPlayState.setVideoState(CommonDefinitions.VIDEOVIEW2, CommonDefinitions.VIDEO_VIEW_STATE_PAUSING);
 
         view.pauseVideos();
 
@@ -102,7 +100,7 @@ public class VideoComparatorPresenterImpl implements VideoComparatorPresenter {
     private void muteVideos(boolean muted) {
         view.muteVideos(muted);
 
-        VIDEO_PLAY_STATE.setVideoMuted(muted);
+        videoPlayState.setVideoMuted(muted);
         updateGuiState();
     }
 
@@ -111,12 +109,12 @@ public class VideoComparatorPresenterImpl implements VideoComparatorPresenter {
      */
     private void updateGuiState() {
         //Action button visibility
-        view.setMuteButtonState(VIDEO_PLAY_STATE.isVideoMuted());
-        view.setPlayButtonVisibility(VIDEO_PLAY_STATE.shouldShowPlayButton());
-        view.setPauseButtonVisibility(VIDEO_PLAY_STATE.shouldShowPauseButton());
-        view.setStopButtonVisibility(VIDEO_PLAY_STATE.shouldShowStopButton());
-        view.setDrawingsMirrorButtonState(VIDEO_PLAY_STATE.shouldShowMirrorDrawings());
-        view.setDrawingsEnabledButtonState(VIDEO_PLAY_STATE.isDrawingEnabled());
+        view.setMuteButtonState(videoPlayState.isVideoMuted());
+        view.setPlayButtonVisibility(videoPlayState.shouldShowPlayButton());
+        view.setPauseButtonVisibility(videoPlayState.shouldShowPauseButton());
+        view.setStopButtonVisibility(videoPlayState.shouldShowStopButton());
+        view.setDrawingsMirrorButtonState(videoPlayState.shouldShowMirrorDrawings());
+        view.setDrawingsEnabledButtonState(videoPlayState.isDrawingEnabled());
 
         //Seekbar visibility: Do not show a seek bar where no video is loaded.
         view.setSeekbarVisibility(CommonDefinitions.VIDEOVIEW1, canSeekBarBecomeVisible(CommonDefinitions.VIDEOVIEW1));
@@ -127,14 +125,14 @@ public class VideoComparatorPresenterImpl implements VideoComparatorPresenter {
     public void onLoadVideoRequested(Uri videoToPlay, @CommonDefinitions.VideoViewIdentifier int videoViewIdentifier) {
         //Remember current video
         if (videoViewIdentifier == CommonDefinitions.VIDEOVIEW1) {
-            VIDEO_PLAY_STATE.setVideo1(videoToPlay);
+            videoPlayState.setVideo1(videoToPlay);
             //initially a video is seekable. The media player will push an info in case this is not true.
-            VIDEO_PLAY_STATE.setVideo1Seekable(videoToPlay != null);
+            videoPlayState.setVideo1Seekable(videoToPlay != null);
         } else {
-            VIDEO_PLAY_STATE.setVideo2(videoToPlay);
+            videoPlayState.setVideo2(videoToPlay);
 
             //initially a video is seekable. The media player will push an info in case this is not true.
-            VIDEO_PLAY_STATE.setVideo2Seekable(videoToPlay != null);
+            videoPlayState.setVideo2Seekable(videoToPlay != null);
         }
 
         view.loadVideo(videoToPlay, videoViewIdentifier);
@@ -157,19 +155,19 @@ public class VideoComparatorPresenterImpl implements VideoComparatorPresenter {
             view.setSeekbarVisibility(CommonDefinitions.VIDEOVIEW1, true);
         }
 
-        if (VIDEO_PLAY_STATE.isVideoLoaded(CommonDefinitions.VIDEOVIEW1)) {
+        if (videoPlayState.isVideoLoaded(CommonDefinitions.VIDEOVIEW1)) {
             view.setVideoTimeVisibility(CommonDefinitions.VIDEOVIEW1, true);
         }
-        if (VIDEO_PLAY_STATE.isVideoLoaded(CommonDefinitions.VIDEOVIEW2)) {
+        if (videoPlayState.isVideoLoaded(CommonDefinitions.VIDEOVIEW2)) {
             view.setVideoTimeVisibility(CommonDefinitions.VIDEOVIEW2, true);
         }
     }
 
     private boolean canSeekBarBecomeVisible(@CommonDefinitions.VideoViewIdentifier int videoViewIdentifier) {
         if (videoViewIdentifier == CommonDefinitions.VIDEOVIEW1) {
-            return VIDEO_PLAY_STATE.getVideo1() != null && VIDEO_PLAY_STATE.isVideo1Seekable();
+            return videoPlayState.getVideo1() != null && videoPlayState.isVideo1Seekable();
         } else {
-            return VIDEO_PLAY_STATE.getVideo2() != null && VIDEO_PLAY_STATE.isVideo2Seekable();
+            return videoPlayState.getVideo2() != null && videoPlayState.isVideo2Seekable();
         }
 
     }
@@ -187,13 +185,13 @@ public class VideoComparatorPresenterImpl implements VideoComparatorPresenter {
     }
 
     /**
-     * Restores the video state saved in VIDEO_PLAY_STATE.
+     * Restores the video state saved in videoPlayState.
      */
     private void restoreState() {
-        onLoadVideoRequested(VIDEO_PLAY_STATE.getVideo1(), CommonDefinitions.VIDEOVIEW1);
-        onLoadVideoRequested(VIDEO_PLAY_STATE.getVideo2(), CommonDefinitions.VIDEOVIEW2);
+        onLoadVideoRequested(videoPlayState.getVideo1(), CommonDefinitions.VIDEOVIEW1);
+        onLoadVideoRequested(videoPlayState.getVideo2(), CommonDefinitions.VIDEOVIEW2);
 
-        muteVideos(VIDEO_PLAY_STATE.isVideoMuted());
+        muteVideos(videoPlayState.isVideoMuted());
 
         updateGuiState();
     }
@@ -222,9 +220,9 @@ public class VideoComparatorPresenterImpl implements VideoComparatorPresenter {
     public void onVideoNotSeekable(@CommonDefinitions.VideoViewIdentifier int videoViewIdentifier) {
         //Seek should be disabled
         if (videoViewIdentifier == CommonDefinitions.VIDEOVIEW1) {
-            VIDEO_PLAY_STATE.setVideo1Seekable(false);
+            videoPlayState.setVideo1Seekable(false);
         } else {
-            VIDEO_PLAY_STATE.setVideo2Seekable(false);
+            videoPlayState.setVideo2Seekable(false);
         }
 
         updateGuiState();
@@ -237,13 +235,13 @@ public class VideoComparatorPresenterImpl implements VideoComparatorPresenter {
 
     @Override
     public void onShouldUpdateMuteState() {
-        view.muteVideos(VIDEO_PLAY_STATE.isVideoMuted());
+        view.muteVideos(videoPlayState.isVideoMuted());
     }
 
     @Override
     public void onTouch() {
         makeUiVisible();
-        if (VIDEO_PLAY_STATE.isVideo1Playing() || VIDEO_PLAY_STATE.isVideo2Playing()) {
+        if (videoPlayState.isVideo1Playing() || videoPlayState.isVideo2Playing()) {
             triggerUiInvisible();
         }
     }
@@ -251,10 +249,10 @@ public class VideoComparatorPresenterImpl implements VideoComparatorPresenter {
     @Override
     public void onVideoLoadSuccess(@CommonDefinitions.VideoViewIdentifier int videoViewIdentifier) {
         if (videoViewIdentifier == CommonDefinitions.VIDEOVIEW1) {
-            VIDEO_PLAY_STATE.setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_LOADED);
+            videoPlayState.setVideoState(CommonDefinitions.VIDEOVIEW1, CommonDefinitions.VIDEO_VIEW_STATE_LOADED);
             makeUiVisible();
         } else {
-            VIDEO_PLAY_STATE.setVideo2State(CommonDefinitions.VIDEO_VIEW_STATE_LOADED);
+            videoPlayState.setVideoState(CommonDefinitions.VIDEOVIEW2, CommonDefinitions.VIDEO_VIEW_STATE_LOADED);
             makeUiVisible();
         }
 
@@ -263,17 +261,39 @@ public class VideoComparatorPresenterImpl implements VideoComparatorPresenter {
     @Override
     public void onVideoLoadError(@CommonDefinitions.VideoViewIdentifier int videoViewIdentifier) {
         if (videoViewIdentifier == CommonDefinitions.VIDEOVIEW1) {
-            VIDEO_PLAY_STATE.setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_ERROR);
+            videoPlayState.setVideoState(CommonDefinitions.VIDEOVIEW1, CommonDefinitions.VIDEO_VIEW_STATE_ERROR);
             makeUiVisible();
         } else {
-            VIDEO_PLAY_STATE.setVideo1State(CommonDefinitions.VIDEO_VIEW_STATE_ERROR);
+            videoPlayState.setVideoState(CommonDefinitions.VIDEOVIEW2, CommonDefinitions.VIDEO_VIEW_STATE_ERROR);
             makeUiVisible();
         }
     }
 
     @Override
     public void onDrawingEnabled(boolean drawingEnabled) {
-        VIDEO_PLAY_STATE.setDrawingEnabled(drawingEnabled);
+        videoPlayState.setDrawingEnabled(drawingEnabled);
         updateGuiState();
+    }
+
+    @Override
+    public void onVideoEnded(@CommonDefinitions.VideoViewIdentifier int videoViewIdentifier) {
+        videoPlayState.setVideoState(videoViewIdentifier, CommonDefinitions.VIDEO_VIEW_STATE_LOADED);
+
+        if (!videoPlayState.isVideo1Playing() && !videoPlayState.isVideo2Playing()) {
+            //Both videos are at the end
+            makeUiVisible();
+
+            view.setPlayButtonVisibility(true);
+            view.setPauseButtonVisibility(false);
+            view.setStopButtonVisibility(false);
+
+            //Seek to beginning. In order to be able to play the video again.
+            if (videoPlayState.isVideo1Seekable()) {
+                view.seekVideoTo(CommonDefinitions.VIDEOVIEW1, 0);
+            }
+            if (videoPlayState.isVideo2Seekable()) {
+                view.seekVideoTo(CommonDefinitions.VIDEOVIEW2, 0);
+            }
+        }
     }
 }
