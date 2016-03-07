@@ -42,6 +42,8 @@ import android.widget.VideoView;
 
 import java.util.concurrent.TimeUnit;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
 import ch.lipsch.videocomparator.drawing.DrawingManager;
 import ch.lipsch.videocomparator.drawing.DrawingView;
 
@@ -64,20 +66,28 @@ public class VideoComparatorActivity extends AppCompatActivity implements VideoC
 
     public static final int SEEK_BAR_UPDATE_DELAY_MS = 1000;
 
-    private Button loadVideo1Button = null;
-    private Button loadVideo2Button = null;
+    @Bind(R.id.loadVideo1Button)
+    protected Button loadVideo1Button = null;
+
+    @Bind(R.id.loadVideo2Button)
+    protected Button loadVideo2Button = null;
 
     /**
      * The video control on the left / top side (depending on the device orientation.
      */
-    private VideoView video1 = null;
-    private DrawingView drawingView1 = null;
+    @Bind(R.id.video1)
+    protected VideoView video1 = null;
+
+    @Bind(R.id.drawingView1)
+    protected DrawingView drawingView1 = null;
 
     /**
      * The video control on the right / bottom side (depending on the device orientation.
      */
-    private VideoView video2 = null;
-    private DrawingView drawingView2 = null;
+    @Bind(R.id.video2)
+    protected VideoView video2 = null;
+    @Bind(R.id.drawingView2)
+    protected DrawingView drawingView2 = null;
 
     private DrawingManager drawingManager = null;
 
@@ -91,10 +101,17 @@ public class VideoComparatorActivity extends AppCompatActivity implements VideoC
     private MenuItem actionEnableDrawings = null;
     private MenuItem actionDisableDrawings = null;
 
-    private SeekBar video1SeekBar = null;
-    private SeekBar video2SeekBar = null;
-    private TextView videoTime1 = null;
-    private TextView videoTime2 = null;
+    @Bind(R.id.seekBarVideo1)
+    protected SeekBar video1SeekBar = null;
+
+    @Bind(R.id.seekBarVideo2)
+    protected SeekBar video2SeekBar = null;
+
+    @Bind(R.id.timeVideo1)
+    protected TextView videoTime1 = null;
+
+    @Bind(R.id.timeVideo2)
+    protected TextView videoTime2 = null;
 
     //The media players of the two video views. They are needed to mute / unmute the videos.
     // This reference is needed because it is not possible at any moment to get the media player of
@@ -128,18 +145,7 @@ public class VideoComparatorActivity extends AppCompatActivity implements VideoC
             setContentView(R.layout.activity_video_comparator_portrait);
         }
 
-        video1 = (VideoView) findViewById(R.id.video1);
-        drawingView1 = (DrawingView) findViewById(R.id.drawingView1);
-        video2 = (VideoView) findViewById(R.id.video2);
-        drawingView2 = (DrawingView) findViewById(R.id.drawingView2);
-
-        video1SeekBar = (SeekBar) findViewById(R.id.seekBarVideo1);
-        video2SeekBar = (SeekBar) findViewById(R.id.seekBarVideo2);
-        videoTime1 = (TextView) findViewById(R.id.timeVideo1);
-        videoTime2 = (TextView) findViewById(R.id.timeVideo2);
-
-        loadVideo1Button = (Button) findViewById(R.id.loadVideo1Button);
-        loadVideo2Button = (Button) findViewById(R.id.loadVideo2Button);
+        ButterKnife.bind(this);
 
         presenter = new VideoComparatorPresenterImpl(this, ((VideoComparatorApplication) getApplication()).getVideoPlayState());
 
