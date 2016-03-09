@@ -44,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import ch.lipsch.videocomparator.drawing.DrawingManager;
 import ch.lipsch.videocomparator.drawing.DrawingView;
 
@@ -150,7 +151,6 @@ public class VideoComparatorActivity extends AppCompatActivity implements VideoC
         presenter = new VideoComparatorPresenterImpl(this, ((VideoComparatorApplication) getApplication()).getVideoPlayState());
 
         registerVideoListeners();
-        registerOpenVideoFileListener();
     }
 
     @Override
@@ -370,32 +370,22 @@ public class VideoComparatorActivity extends AppCompatActivity implements VideoC
     }
 
     /**
-     * Registers a touch listener on the two load video buttons which opens an activity to choose a video file.
+     * Shows a file selection activitiy when on one the load video buttons if pressed.
+     *
+     * @param openVideoFileButton The pressed button
      */
-    private void registerOpenVideoFileListener() {
-        View.OnTouchListener loadVideoTouchListener = new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    Intent intent = new Intent();
-                    intent.setType("video/*");
-                    intent.setAction(Intent.ACTION_GET_CONTENT);
+    @OnClick({R.id.loadVideo1Button, R.id.loadVideo2Button})
+    protected void openVideoFileTouched(Button openVideoFileButton) {
+        Intent intent = new Intent();
+        intent.setType("video/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
 
-                    int requestNumber = PICK_VIDEO1_REQUEST;
-                    if (view == loadVideo2Button) {
-                        requestNumber = PICK_VIDEO2_REQUEST;
-                    }
+        int requestNumber = PICK_VIDEO1_REQUEST;
+        if (openVideoFileButton == loadVideo2Button) {
+            requestNumber = PICK_VIDEO2_REQUEST;
+        }
 
-                    startActivityForResult(Intent.createChooser(intent, getString(R.string.select_video)), requestNumber);
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        };
-
-        loadVideo1Button.setOnTouchListener(loadVideoTouchListener);
-        loadVideo2Button.setOnTouchListener(loadVideoTouchListener);
+        startActivityForResult(Intent.createChooser(intent, getString(R.string.select_video)), requestNumber);
     }
 
     /**
@@ -511,6 +501,7 @@ public class VideoComparatorActivity extends AppCompatActivity implements VideoC
         getMenuInflater().inflate(R.menu.menu_video_comparator, menu);
 
         //Need to remember them due to the visibility changes.
+        //Can't be bound by butter knife because menu is not available during startup.
         actionPlay = menu.findItem(R.id.action_play);
         actionPause = menu.findItem(R.id.action_pause);
         actionStop = menu.findItem(R.id.action_stop);
