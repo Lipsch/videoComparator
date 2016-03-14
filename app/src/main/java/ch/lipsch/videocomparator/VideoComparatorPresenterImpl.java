@@ -152,7 +152,7 @@ public class VideoComparatorPresenterImpl implements VideoComparatorPresenter {
             view.setSeekbarVisibility(CommonDefinitions.VIDEOVIEW1, true);
         }
         if (canSeekBarBecomeVisible(CommonDefinitions.VIDEOVIEW2)) {
-            view.setSeekbarVisibility(CommonDefinitions.VIDEOVIEW1, true);
+            view.setSeekbarVisibility(CommonDefinitions.VIDEOVIEW2, true);
         }
 
         if (videoPlayState.isVideoLoaded(CommonDefinitions.VIDEOVIEW1)) {
